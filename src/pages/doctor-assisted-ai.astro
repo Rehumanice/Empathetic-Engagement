@@ -1,0 +1,1824 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Doctor Assisted AI - Empathetic Engagement">
+    <main class="doctor-ai-page">
+        <header class="page-header">
+            <div class="header-badge">👨‍⚕️ Advanced Clinical Assistant</div>
+            <h1>Doctor Assisted Analysis</h1>
+        </header>
+
+        <!-- STEP 1: PATIENT INTAKE (SEARCH or NEW) -->
+        <div id="intake-section" class="workspace-grid">
+            <!-- Option A: Search Existing -->
+            <section class="panel option-panel">
+                <div class="panel-header">
+                    <h3>🔍 Existing Patient</h3>
+                </div>
+                <div class="search-box">
+                    <input
+                        type="text"
+                        id="patientSearchInput"
+                        placeholder="Search by Name or ID..."
+                        autocomplete="off"
+                    />
+                    <div id="searchResults" class="search-results hidden"></div>
+                </div>
+                <p class="helper-text">
+                    Find patients to view history or start new analysis.
+                </p>
+            </section>
+
+            <!-- Option B: Create New -->
+            <section class="panel option-panel">
+                <div class="panel-header">
+                    <h3>➕ New Patient Profile</h3>
+                </div>
+                <form id="new-patient-form">
+                    <div class="form-grid">
+                        <input
+                            type="text"
+                            name="newPatientName"
+                            placeholder="Full Name"
+                            required
+                        />
+                        <div class="row-2">
+                            <input
+                                type="number"
+                                name="newPatientAge"
+                                placeholder="Age"
+                                required
+                            />
+                            <select name="newPatientGender" required>
+                                <option value="" disabled selected>Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <select name="newPatientBloodType">
+                                <option value="">Blood Type</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                            </select>
+                        </div>
+                        <input
+                            type="text"
+                            name="newConditions"
+                            placeholder="Chronic Conditions (comma sep)"
+                        />
+                        <input
+                            type="text"
+                            name="newAllergies"
+                            placeholder="Allergies (comma sep)"
+                        />
+                    </div>
+                    <button type="submit" class="create-btn"
+                        >Create Profile</button
+                    >
+                </form>
+            </section>
+        </div>
+
+        <!-- STEP 2: ACTIVE WORKSPACE (Hidden initially) -->
+        <div id="active-workspace" class="hidden">
+            <!-- Active Patient Context Banner -->
+            <div class="patient-context-banner">
+                <div class="banner-top-row">
+                    <div class="patient-info">
+                        <h2 id="activePatientName">Patient Name</h2>
+                        <span id="activePatientDetails" class="details-text">Age • Gender</span>
+                    </div>
+                     <div class="visit-stats">
+                        <div class="stat-badge">
+                            <span class="stat-val" id="totalVisitsCount">0</span>
+                            <span class="stat-label">Total Visits</span>
+                        </div>
+                    </div>
+                    <div>
+                        <button id="editPatientBtn" class="sm-btn outline" style="margin-right:0.5rem;">✏️ Edit Profile</button>
+                        <button id="changePatientBtn" class="sm-btn outline">Change Patient</button>
+                    </div>
+                </div>
+                
+                <div class="banner-content-row">
+                     <!-- 1. Tags -->
+                     <div class="health-tags">
+                        <div id="activeConditions" class="tag-group"></div>
+                        <div id="activeAllergies" class="tag-group red"></div>
+                    </div>
+                    
+                    <!-- 2. Last Visit Summary -->
+                    <div id="lastVisitBanner" style="margin-top: 1rem; padding-top: 0.8rem; border-top: 1px dashed #e2e8f0; color: #475569; font-size: 0.9rem; display: none;">
+                        <strong>Last Visit:</strong> <span id="lastVisitText">Loading...</span>
+                    </div>
+                    <!-- 2. Health Summary Box -->
+                    <div id="healthSummaryBox" class="health-summary-box hidden">
+                        <strong>🏥 Overall Health Summary:</strong>
+                        <p id="healthSummaryText">No summary available.</p>
+                </div>
+
+                 <!-- REPORT MODAL (Hidden by default) -->
+                <dialog id="editProfileModal" class="report-modal" style="max-width: 500px; border-radius: 16px;">
+                    <div class="report-container" style="padding: 2rem;">
+                        <div class="rpt-header" style="justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                            <h3 style="margin:0; font-size: 1.25rem; font-weight: 600;">✏️ Edit Patient Profile</h3>
+                            <button id="closeEditModalBtn" class="close-icon-btn">&times;</button>
+                        </div>
+                        <form id="edit-patient-form">
+                            <div class="form-grid">
+                                <div>
+                                    <label class="modal-label">Full Name</label>
+                                    <input type="text" name="editPatientName" id="editPatientName" required class="modal-input" />
+                                </div>
+                                
+                                <div class="row-2" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                                    <div>
+                                        <label style="font-size: 0.9rem; font-weight: 500; display:block; margin-bottom:0.3rem;">Age</label>
+                                        <input type="number" name="editPatientAge" id="editPatientAge" required style="width:100%; padding:0.8rem; border:1px solid #cbd5e1; border-radius:8px;" />
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 0.9rem; font-weight: 500; display:block; margin-bottom:0.3rem;">Gender</label>
+                                        <select name="editPatientGender" id="editPatientGender" required style="width:100%; padding:0.8rem; border:1px solid #cbd5e1; border-radius:8px;">
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label style="font-size: 0.9rem; font-weight: 500; display:block; margin-bottom:0.3rem;">Blood Type</label>
+                                    <select name="editPatientBloodType" id="editPatientBloodType" style="width:100%; padding:0.8rem; border:1px solid #cbd5e1; border-radius:8px;">
+                                        <option value="">Unknown</option>
+                                        <option value="A+">A+</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B-">B-</option>
+                                        <option value="O+">O+</option>
+                                        <option value="O-">O-</option>
+                                        <option value="AB+">AB+</option>
+                                        <option value="AB-">AB-</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label style="font-size: 0.9rem; font-weight: 500; display:block; margin-bottom:0.3rem;">Conditions (comma sep)</label>
+                                    <input type="text" name="editConditions" id="editConditions" style="width:100%; padding:0.8rem; border:1px solid #cbd5e1; border-radius:8px;" />
+                                </div>
+                                
+                                <div>
+                                    <label style="font-size: 0.9rem; font-weight: 500; display:block; margin-bottom:0.3rem;">Allergies (comma sep)</label>
+                                    <input type="text" name="editAllergies" id="editAllergies" style="width:100%; padding:0.8rem; border:1px solid #cbd5e1; border-radius:8px;" />
+                                </div>
+                            </div>
+                            <button type="submit" class="create-btn" style="width: 100%; margin-top: 1.5rem;">Save Changes</button>
+                        </form>
+                    </div>
+                </dialog>
+
+                <!-- REPORT MODAL (Hidden by default) -->
+                <dialog id="reportModal" class="report-modal">
+                    <div class="report-container">
+                        <!-- Header -->
+                        <div class="rpt-header">
+                            <div class="rpt-brand">
+                                <h1>🏥 Empathetic Engagement</h1>
+                                <span>Clinical Summary Report</span>
+                            </div>
+                            <div class="rpt-meta">
+                                <p><strong>Date:</strong> <span id="rptDate"></span></p>
+                                <p><strong>Patient:</strong> <span id="rptPatient"></span></p>
+                            </div>
+                            <!-- Close X Button -->
+                            <button id="headerCloseBtn" class="close-icon-btn no-print" title="Close">&times;</button>
+                        </div>
+
+                        <!-- 1. Clinical Basics -->
+                        <div class="rpt-section">
+                            <h3>Clinical Context</h3>
+                            <div class="rpt-grid">
+                                <div><strong>Reason for Visit:</strong> <span id="rptReason"></span></div>
+                                <div><strong>Doctor's Diagnosis:</strong> <span id="rptDiagnosis"></span></div>
+                            </div>
+                            <div class="rpt-vitals" id="rptVitals"></div>
+                        </div>
+
+                        <!-- 2. AI Analysis -->
+                        <div class="rpt-section">
+                            <h3>AI Analysis Findings</h3>
+                            <div id="rptAnalysisContent"></div>
+                        </div>
+
+                        <!-- 3. Footer / Actions -->
+                        <div class="rpt-actions no-print">
+                            <button id="closeRptBtn" class="sm-btn outline">Cancel</button>
+                            <button id="printRptBtn" class="sm-btn primary">🖨️ Save as PDF / Print</button>
+                        </div>
+                    </div>
+                </dialog>
+            </div>
+        </div>
+
+            <div class="workspace-main-layout">
+                <!-- HISTORY SIDEBAR -->
+                <aside id="history-sidebar" class="history-sidebar">
+                    <div class="sidebar-header">
+                        <h3>🕒 History</h3>
+                    </div>
+                    <div id="history-timeline" class="timeline">
+                        <p class="empty-text">No past visits recorded.</p>
+                    </div>
+                </aside>
+
+                <form id="analysis-form" class="workspace-grid">
+                <input type="hidden" id="activePatientId" name="patientId" />
+
+                <!-- Doctor Details (Auto-carried over) -->
+                <section class="panel">
+                    <div class="panel-header"><h3>👨‍⚕️ Doctor Details</h3></div>
+                    <div class="input-group">
+                        <label>Doctor Name</label>
+                        <input
+                            type="text"
+                            name="doctorName"
+                            placeholder="Dr. Name"
+                            required
+                        />
+                    </div>
+                </section>
+
+                <!-- Clinical Context -->
+                <section class="panel">
+                    <div class="panel-header"><h3>🏥 Clinical Context</h3></div>
+                    <div class="input-group">
+                        <label>Reason for Visit / Symptoms</label>
+                        <input
+                            type="text"
+                            name="symptoms"
+                            placeholder="e.g. Persistent cough, fever for 3 days..."
+                            required
+                        />
+                    </div>
+                </section>
+
+                <!-- Vitals for this Visit -->
+                <section class="panel">
+                    <div class="panel-header"><h3>🩺 Visit Vitals</h3></div>
+                    <div class="upload-grid">
+                        <!-- Reusing grid layout -->
+                        <div class="input-group">
+                            <label>Weight (kg)</label>
+                            <input
+                                type="text"
+                                name="patientWeight"
+                                placeholder="e.g. 70"
+                            />
+                        </div>
+                        <div class="input-group">
+                            <label>BP (mmHg)</label>
+                            <input
+                                type="text"
+                                name="patientBP"
+                                placeholder="e.g. 120/80"
+                            />
+                        </div>
+                        <div class="input-group">
+                            <label>Temp (°F)</label>
+                            <input
+                                type="text"
+                                name="patientTemp"
+                                placeholder="e.g. 98.6"
+                            />
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Evidence Upload -->
+                <section class="panel upload-panel">
+                    <div class="panel-header">
+                        <h3>📂 Evidence / Reports</h3>
+                    </div>
+                    <div class="upload-grid">
+                        <!-- Scan Upload -->
+                        <div class="upload-box" id="drop-scan">
+                            <input
+                                type="file"
+                                id="scanFile"
+                                name="scanFile"
+                                accept="image/*,.dcm"
+                                hidden
+                                multiple
+                            />
+                            <span class="icon">🩻</span>
+                            <label>Scan (X-Ray/CT/MRI)</label>
+                            <button
+                                type="button"
+                                onclick="document.getElementById('scanFile').click()"
+                                class="sm-btn">Browse</button
+                            >
+                            <div id="preview-scan" class="file-preview"></div>
+                        </div>
+
+                        <!-- Blood Report Upload -->
+                        <div class="upload-box" id="drop-blood">
+                            <input
+                                type="file"
+                                id="bloodFile"
+                                name="bloodFile"
+                                accept="image/*,.pdf"
+                                hidden
+                                multiple
+                            />
+                            <span class="icon">🩸</span>
+                            <label>Blood Report</label>
+                            <button
+                                type="button"
+                                onclick="document.getElementById('bloodFile').click()"
+                                class="sm-btn">Browse</button
+                            >
+                            <div id="preview-blood" class="file-preview"></div>
+                        </div>
+
+                        <!-- Prescription Upload -->
+                        <div class="upload-box" id="drop-rx">
+                            <input
+                                type="file"
+                                id="rxFile"
+                                name="rxFile"
+                                accept="image/*,.pdf"
+                                hidden
+                                multiple
+                            />
+                            <span class="icon">💊</span>
+                            <label>Prescription / Notes</label>
+                            <button
+                                type="button"
+                                onclick="document.getElementById('rxFile').click()"
+                                class="sm-btn">Browse</button
+                            >
+                            <div id="preview-rx" class="file-preview"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Doctor's Diagnosis -->
+                <section class="panel diagnosis-panel">
+                    <div class="panel-header">
+                        <h3>🎙️ Clinical Diagnosis</h3>
+                        <div class="voice-controls">
+                            <button
+                                type="button"
+                                id="recordBtn"
+                                class="record-btn"
+                                title="Start Voice Recording"
+                            >
+                                <span class="mic-icon">🎤</span> Record
+                            </button>
+                            <span id="recording-status" class="hidden"
+                                >Listening...</span
+                            >
+                        </div>
+                    </div>
+                    <textarea
+                        id="doctorDiagnosis"
+                        name="doctorDiagnosis"
+                        rows="6"
+                        placeholder="Describe diagnosis..."
+                        required></textarea>
+                </section>
+
+                <!-- Action -->
+                <div class="action-area">
+                    <button type="submit" class="analyze-btn"
+                        >✨ Analyze Case with AI</button
+                    >
+                </div>
+            </form>
+            </div> <!-- End workspace-main-layout -->
+
+            <!-- Analysis Results -->
+            <div id="analysis-results" class="results-container hidden">
+                <div id="loading-state" class="hidden">
+                    <div class="loader"></div>
+                    <p>Analyzing Evidence & Comparing Diagnoses...</p>
+                </div>
+                <div id="result-content" class="hidden"></div>
+            </div>
+        </div>
+    </main>
+</Layout>
+
+<script>
+    import { supabase } from "../lib/supabase";
+
+    // STATES
+    const intakeSection = document.getElementById("intake-section");
+    const workspaceSection = document.getElementById("active-workspace");
+
+    // UI Elements
+    const patientSearchInput = document.getElementById("patientSearchInput");
+    const searchResults = document.getElementById("searchResults");
+    const newPatientForm = document.getElementById("new-patient-form");
+    const changePatientBtn = document.getElementById("changePatientBtn");
+
+    // Workspace Elements
+    const activePatientName = document.getElementById("activePatientName");
+    const activePatientDetails = document.getElementById(
+        "activePatientDetails",
+    );
+    const activeConditions = document.getElementById("activeConditions");
+    const activeAllergies = document.getElementById("activeAllergies");
+    const activePatientId = document.getElementById("activePatientId");
+
+    let searchTimeout: any;
+
+    function activateWorkspace(patient: any) {
+        // Populate Workspace
+        if (activePatientName) activePatientName.innerText = patient.full_name;
+        if (activePatientDetails)
+            activePatientDetails.innerText = `${patient.age} Yrs • ${patient.gender}`;
+        if (activePatientId && activePatientId instanceof HTMLInputElement)
+            activePatientId.value = patient.id;
+
+        (window as any).currentPatientContext = patient;
+
+        // Tags
+        // Tags
+        if (activeConditions) {
+            const conditions = patient.chronic_conditions || [];
+            activeConditions.innerHTML = `
+                <span class="tag-label">Conditions:</span>
+                ${conditions.length ? conditions.map((c: string) => `<span class="tag condition">${c}</span>`).join("")
+                                   : `<span class="empty-tag">None</span>`}
+            `;
+        }
+        if (activeAllergies) {
+             const allergies = patient.allergies || [];
+             
+             activeAllergies.innerHTML = `
+                <div class="divider"></div>
+                <span class="tag-label">Allergies:</span>
+                ${allergies.length ? allergies.map((a: string) => `<span class="tag allergy">⚠️ ${a}</span>`).join("")
+                                  : `<span class="empty-tag">None</span>`}
+                
+                <div class="divider"></div>
+                <span class="tag-label">Blood: <span class="blood-val">${patient.blood_type || 'Unknown'}</span></span>
+            `;
+        }
+
+        // Switch Views
+        intakeSection?.classList.add("hidden");
+        workspaceSection?.classList.remove("hidden");
+
+        // Populate Health Summary
+        const summaryBox = document.getElementById("healthSummaryBox");
+        const summaryText = document.getElementById("healthSummaryText");
+        
+        if (patient.health_summary_json && patient.health_summary_json.summary) {
+            if(summaryText) summaryText.innerText = patient.health_summary_json.summary;
+            summaryBox?.classList.remove("hidden");
+        } else {
+            summaryBox?.classList.add("hidden");
+        }
+
+        // LOAD HISTORY (Detailed)
+        const historyContainer = document.getElementById("history-timeline");
+        const countBadge = document.getElementById("totalVisitsCount");
+        
+        if(historyContainer) {
+            historyContainer.innerHTML = '<p class="loader-sm">Loading complete history...</p>';
+            
+            supabase
+                .schema("medicalai")
+                .from("clinical_visits")
+                .select(`
+                    id,
+                    created_at, 
+                    doctor_diagnosis_json,
+                    symptoms,
+                    weight_kg,
+                    bp_systolic,
+                    bp_diastolic,
+                    temperature_f,
+                    ai_match_score,
+                    medical_reports (
+                        report_type,
+                        ai_analysis_json,
+                        file_url
+                    )
+                `)
+                .eq("patient_id", patient.id)
+                .order("created_at", { ascending: false })
+                .limit(20)
+                .then(({ data, error }) => {
+                    if (error) {
+                        console.error("History Load Error:", error);
+                        historyContainer.innerHTML = `<p class="error-text">Failed to load history.</p>`;
+                        return;
+                    }
+
+                    // Update Count
+                    if(countBadge) countBadge.innerText = (data || []).length.toString();
+
+                    // Update Last Visit Banner
+                    const lastVisitBanner = document.getElementById("lastVisitBanner");
+                    const lastVisitText = document.getElementById("lastVisitText");
+                    
+                    if(data && data.length > 0) {
+                        const lastVisit = data[0];
+                        const lastDate = new Date(lastVisit.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' });
+                        const lastReason = lastVisit.doctor_diagnosis_json?.text || "Routine Checkup";
+                        
+                        if(lastVisitText) lastVisitText.innerHTML = `${lastReason} <span style="color:#94a3b8; font-size:0.8rem;">(${lastDate})</span>`;
+                        if(lastVisitBanner) lastVisitBanner.style.display = "block";
+                    } else {
+                        if(lastVisitBanner) lastVisitBanner.style.display = "none";
+                    }
+
+                    if(data && data.length > 0) {
+                        historyContainer.innerHTML = data.map((visit: any, index: number) => {
+                            // ... existing map logic ...
+                            const date = new Date(visit.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+                            const diag = visit.doctor_diagnosis_json?.text || "No diagnosis recorded";
+                            
+                            // Vitals String
+                            const vitals = [];
+                            if(visit.weight_kg) vitals.push(`${visit.weight_kg}kg`);
+                            if(visit.bp_systolic) vitals.push(`BP: ${visit.bp_systolic}/${visit.bp_diastolic}`);
+                            if(visit.temperature_f) vitals.push(`${visit.temperature_f}°F`);
+                            const vitalsStr = vitals.join(" • ");
+
+                            // AI Summary Logic
+                            let aiSummary = "";
+                            const report = visit.medical_reports && visit.medical_reports[0];
+                            if(report && report.ai_analysis_json) {
+                                const impression = report.ai_analysis_json.impression || "Analysis completed.";
+                                const shortImpression = impression.length > 60 ? impression.substring(0, 60) + "..." : impression;
+                                const matchScore = report.ai_analysis_json.match_score || visit.ai_match_score || 0;
+                                const recommendations = (report.ai_analysis_json.recommendations || []).slice(0, 2);
+                                const planHtml = recommendations.length ? `
+                                    <div class="h-plan">
+                                        <strong>📝 Next Steps:</strong>
+                                        <ul>${recommendations.map((r:string) => `<li>${r}</li>`).join('')}</ul>
+                                    </div>
+                                ` : '';
+
+                                aiSummary = `
+                                    <div class="h-footer">
+                                        <div class="ai-badge ${matchScore > 80 ? 'high' : 'med'}">
+                                            <span>🤖 AI Match: ${matchScore}%</span>
+                                        </div>
+                                        <p class="ai-text">"${shortImpression}"</p>
+                                        ${planHtml}
+                                    </div>
+                                `;
+                            }
+
+                            return `
+                                <div class="history-card clickable-card" id="hist-card-${index}">
+                                    <div class="click-hint">Click to view full details ➜</div>
+                                    
+                                    <div class="h-row top">
+                                        <span class="h-date">${date}</span>
+                                        <span class="h-tag">Consultation</span>
+                                    </div>
+                                    
+                                    <div class="h-row reason-row">
+                                        <span class="label">Reason:</span>
+                                        <span class="val">${visit.symptoms || "Regular Checkup"}</span>
+                                    </div>
+
+                                    <div class="h-main">
+                                        <div class="h-diagnosis" title="${diag}">${diag}</div>
+                                        ${vitalsStr ? `
+                                            <div class="h-vitals-grid">
+                                                <div class="v-item">🩺 ${vitalsStr}</div>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                    
+                                    ${aiSummary}
+                                </div>
+                            `;
+                        }).join('');
+
+                        // ADD CLICK LISTENERS
+                        data.forEach((visit: any, index: number) => {
+                            const card = document.getElementById(`hist-card-${index}`);
+                            if(card) {
+                                card.addEventListener('click', () => {
+                                    loadVisitView(visit);
+                                });
+                            }
+                        });
+
+                    } else {
+                        historyContainer.innerHTML = '<p class="empty-text">No past visits recorded.</p>';
+                    }
+                });
+        }
+    }
+
+    // SEARCH LOGIC
+    if (patientSearchInput) {
+        patientSearchInput.addEventListener("input", (e) => {
+            const query = (e.target as HTMLInputElement).value.trim();
+            if (searchTimeout) clearTimeout(searchTimeout);
+
+            if (query.length < 2) {
+                searchResults?.classList.add("hidden");
+                return;
+            }
+
+            searchTimeout = setTimeout(async () => {
+                try {
+                    console.log("Searching for:", query);
+                    const { data, error } = await supabase
+                        .schema("medicalai")
+                        .from("patients")
+                        .select("*")
+                        .ilike("full_name", `%${query}%`)
+                        .limit(5);
+
+                    if (error) {
+                        console.error("Supabase Search Error:", error);
+                        if (searchResults) {
+                            searchResults.innerHTML = `<div class="result-item no-result" style="color:red">Error: ${error.message}</div>`;
+                            searchResults.classList.remove("hidden");
+                        }
+                        return;
+                    }
+
+                    if (data && data.length > 0 && searchResults) {
+                        searchResults.innerHTML = data
+                            .map(
+                                (p: any) => `
+                        <div class="result-item" data-json='${JSON.stringify(p)}'>
+                            <strong>${p.full_name}</strong>
+                            <span>${p.age} Yrs • ${p.gender}</span>
+                        </div>
+                    `,
+                            )
+                            .join("");
+                        searchResults.classList.remove("hidden");
+
+                        // Add click listeners
+                        document
+                            .querySelectorAll(".result-item")
+                            .forEach((item) => {
+                                item.addEventListener("click", () => {
+                                    const patient = JSON.parse(
+                                        (item as HTMLElement).dataset.json ||
+                                            "{}",
+                                    );
+                                    activateWorkspace(patient);
+                                    searchResults.classList.add("hidden");
+                                    if (
+                                        patientSearchInput instanceof
+                                        HTMLInputElement
+                                    )
+                                        patientSearchInput.value = "";
+                                });
+                            });
+                    } else {
+                        if (searchResults) {
+                            searchResults.innerHTML = `<div class="result-item no-result">No patients found. Try creating a new profile.</div>`;
+                            searchResults.classList.remove("hidden");
+                        }
+                    }
+                } catch (err) {
+                    console.error("Unexpected Search Error:", err);
+                }
+            }, 300);
+        });
+    }
+
+
+    // --- Report Modal Logic ---
+    const reportModal = document.getElementById("reportModal") as HTMLDialogElement;
+    const closeRptBtn = document.getElementById("closeRptBtn");
+    const printRptBtn = document.getElementById("printRptBtn");
+    const headerCloseBtn = document.getElementById("headerCloseBtn");
+
+    if(closeRptBtn && reportModal) {
+        closeRptBtn.addEventListener("click", () => reportModal.close());
+    }
+    if(headerCloseBtn && reportModal) {
+        headerCloseBtn.addEventListener("click", () => reportModal.close());
+    }
+    if(printRptBtn) {
+        printRptBtn.addEventListener("click", () => window.print());
+    }
+
+    // NEW FUNCTION: Open Summary Report Modal
+    function openReportModal(visit: any) {
+        if(!reportModal) return;
+
+        // 1. Basic Info
+        const date = new Date(visit.created_at).toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        
+        setText("rptDate", date);
+        setText("rptPatient", document.getElementById("activePatientName")?.innerText || "Unknown");
+        setText("rptReason", visit.symptoms || "Regular Checkup");
+        setText("rptDiagnosis", visit.doctor_diagnosis_json?.text || "Not recorded");
+
+        // 2. Vitals
+        const vitalsDiv = document.getElementById("rptVitals");
+        if(vitalsDiv) {
+            const parts = [];
+            if(visit.weight_kg) parts.push(`Weight: ${visit.weight_kg} kg`);
+            if(visit.bp_systolic) parts.push(`BP: ${visit.bp_systolic}/${visit.bp_diastolic}`);
+            if(visit.temperature_f) parts.push(`Temp: ${visit.temperature_f}°F`);
+            
+            vitalsDiv.innerHTML = parts.length ? parts.map(p => `<span>🩺 ${p}</span>`).join('') : '<span style="color:#94a3b8">No vitals recorded</span>';
+        }
+
+        // 3. AI Analysis
+        const analysisContainer = document.getElementById("rptAnalysisContent");
+        if(analysisContainer) {
+            analysisContainer.innerHTML = ''; // clear previous
+            
+            const report = visit.medical_reports && visit.medical_reports[0];
+            if(report && report.ai_analysis_json) {
+                // Reuse render logic but simpler for print
+                renderAnalysis(analysisContainer, report.ai_analysis_json);
+                
+                // Show File Link if exists
+                if(report.file_url) {
+                    analysisContainer.insertAdjacentHTML('beforeend', `
+                        <div class="rpt-file-link no-print" style="margin-top:2rem; padding-top:1rem; border-top:1px solid #e2e8f0;">
+                            <strong>📎 Attached Reference:</strong><br/>
+                            <a href="${report.file_url}" target="_blank" class="sm-btn outline" style="margin-top:0.5rem; display:inline-block;">View Original File</a>
+                        </div>
+                    `);
+                }
+
+            } else {
+                analysisContainer.innerHTML = '<p style="color:#64748b; font-style:italic;">No AI Analysis performed for this visit.</p>';
+            }
+        }
+
+        reportModal.showModal();
+    }
+    
+    // Helper to safely set text
+    function setText(id: string, val: string) {
+        const el = document.getElementById(id);
+        if(el) el.innerText = val;
+    }
+
+    // REPLACE 'loadVisitView' with this logic for history clicks
+    function loadVisitView(visit: any) {
+        openReportModal(visit);
+    }
+
+    // CREATE PATIENT LOGIC
+    if (newPatientForm) {
+        newPatientForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const btn = newPatientForm.querySelector("button");
+            const originalText = btn ? btn.innerText : "Create Profile";
+            if (btn) btn.innerText = "Creating...";
+
+            const formData = new FormData(newPatientForm as HTMLFormElement);
+
+            const newPatient = {
+                full_name: formData.get("newPatientName"),
+                age: Number(formData.get("newPatientAge")),
+                gender: formData.get("newPatientGender"),
+                blood_type: formData.get("newPatientBloodType") || null,
+                chronic_conditions: (formData.get("newConditions") as string)
+                    .split(",")
+                    .map((s) => s.trim())
+                    .filter(Boolean),
+                allergies: (formData.get("newAllergies") as string)
+                    .split(",")
+                    .map((s) => s.trim())
+                    .filter(Boolean),
+            };
+
+            try {
+                // 1. Check for Duplicates (Robust)
+                // Use limit(1) instead of single() to handle cases where multiple duplicates might already exist
+                const { data: existingList } = await supabase
+                    .schema("medicalai")
+                    .from("patients")
+                    .select("*")
+                    .ilike("full_name", (newPatient.full_name as string).trim())
+                    .eq("age", newPatient.age)
+                    .limit(1);
+
+                if (existingList && existingList.length > 0) {
+                    const existing = existingList[0];
+                    if (confirm(`A patient named "${existing.full_name}" (Age: ${existing.age}) already exists. \n\nDo you want to use this existing profile instead?`)) {
+                        activateWorkspace(existing);
+                        (newPatientForm as HTMLFormElement).reset();
+                        if(btn) btn.innerText = originalText;
+                        return; 
+                    }
+                }
+
+                // 2. Create New
+                const { data, error } = await supabase
+                    .schema("medicalai")
+                    .from("patients")
+                    .insert(newPatient)
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                if (data) {
+                    alert("Patient Created Successfully!");
+                    activateWorkspace(data);
+                    (newPatientForm as HTMLFormElement).reset();
+                }
+            } catch (err: any) {
+                console.error("Create Patient Error:", err);
+                alert(
+                    "Error creating patient: " +
+                        err.message +
+                        "\n\n(Check console for details)",
+                );
+            } finally {
+                if (btn) btn.innerText = originalText;
+            }
+        });
+    }
+
+    // RESET LOGIC
+    if (changePatientBtn) {
+        changePatientBtn.addEventListener("click", () => {
+            workspaceSection?.classList.add("hidden");
+            intakeSection?.classList.remove("hidden");
+            // Reset forms if needed
+        });
+    }
+
+    // EDIT PROFILE LOGIC
+    const editPatientBtn = document.getElementById("editPatientBtn");
+    const editProfileModal = document.getElementById("editProfileModal") as HTMLDialogElement;
+    const closeEditModalBtn = document.getElementById("closeEditModalBtn");
+    const editPatientForm = document.getElementById("edit-patient-form") as HTMLFormElement;
+
+    if (editPatientBtn && editProfileModal) {
+        editPatientBtn.addEventListener("click", () => {
+             const patient = (window as any).currentPatientContext;
+             if (!patient) return;
+             
+             (document.getElementById("editPatientName") as HTMLInputElement).value = patient.full_name || '';
+             (document.getElementById("editPatientAge") as HTMLInputElement).value = patient.age || '';
+             (document.getElementById("editPatientGender") as HTMLSelectElement).value = patient.gender || '';
+             (document.getElementById("editPatientBloodType") as HTMLSelectElement).value = patient.blood_type || '';
+             (document.getElementById("editConditions") as HTMLInputElement).value = (patient.chronic_conditions || []).join(', ');
+             (document.getElementById("editAllergies") as HTMLInputElement).value = (patient.allergies || []).join(', ');
+             
+             editProfileModal.showModal();
+        });
+    }
+
+    if (closeEditModalBtn && editProfileModal) {
+        closeEditModalBtn.addEventListener("click", () => editProfileModal.close());
+    }
+
+    if (editPatientForm) {
+        editPatientForm.addEventListener("submit", async (e) => {
+             e.preventDefault();
+             const btn = editPatientForm.querySelector("button");
+             const originalText = btn ? btn.innerText : "Save Changes";
+             if (btn) btn.innerText = "Saving...";
+
+             const patientId = (window as any).currentPatientContext?.id;
+             if (!patientId) return;
+
+             const formData = new FormData(editPatientForm);
+             const updates = {
+                 full_name: formData.get("editPatientName"),
+                 age: Number(formData.get("editPatientAge")),
+                 gender: formData.get("editPatientGender"),
+                 blood_type: formData.get("editPatientBloodType") || null,
+                 chronic_conditions: (formData.get("editConditions") as string).split(",").map(s => s.trim()).filter(Boolean),
+                 allergies: (formData.get("editAllergies") as string).split(",").map(s => s.trim()).filter(Boolean),
+             };
+
+             try {
+                 const { data, error } = await supabase
+                     .schema("medicalai")
+                     .from("patients")
+                     .update(updates)
+                     .eq("id", patientId)
+                     .select()
+                     .single();
+
+                 if (error) throw error;
+                 
+                 if (data) {
+                     alert("Profile Updated Successfully!");
+                     editProfileModal.close();
+                     activateWorkspace(data);
+                 }
+             } catch (err: any) {
+                 console.error("Update Profile Error:", err);
+                 alert("Error updating profile: " + err.message);
+             } finally {
+                 if (btn) btn.innerText = originalText;
+             }
+        });
+    }
+
+    // --- (Keeping existing Analysis, Voice, and File Preview Logic below) ---
+    // ... Copying over previous helper functions like setupPreview and renderAnalysis ...
+
+    // --- File Preview & Drag-Drop Logic ---
+    const activeFiles = {
+        'scanFile': new DataTransfer(),
+        'bloodFile': new DataTransfer(),
+        'rxFile': new DataTransfer()
+    };
+
+    function setupUploadBox(boxId: string, inputId: string, previewId: string) {
+        const box = document.getElementById(boxId);
+        const input = document.getElementById(inputId) as HTMLInputElement;
+        const preview = document.getElementById(previewId);
+
+        if (!box || !input || !preview) return;
+
+        // 1. Click Box to Open File Dialog
+        box.addEventListener("click", (e) => {
+            if (
+                e.target !== input &&
+                (e.target as HTMLElement).tagName !== "BUTTON" &&
+                !(e.target as HTMLElement).classList.contains("delete-file-btn")
+            ) {
+                input.click();
+            }
+        });
+
+        // 2. Handle File Selection
+        const handleFiles = (files: FileList | null) => {
+            if (!files || files.length === 0) return;
+            const dt = activeFiles[inputId as keyof typeof activeFiles];
+            Array.from(files).forEach(f => {
+                // Prevent duplicate names in simple way
+                if (!Array.from(dt.files).find(existing => existing.name === f.name)) {
+                    dt.items.add(f);
+                }
+            });
+            input.files = dt.files;
+            renderPreviews(dt.files, preview, input, dt);
+        };
+
+        input.addEventListener("change", () => {
+            handleFiles(input.files);
+            input.value = ""; // Reset to allow re-selection of same file if needed
+        });
+
+        // 3. Drag and Drop Support
+        box.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            box.classList.add("drag-active");
+        });
+
+        box.addEventListener("dragleave", () => {
+            box.classList.remove("drag-active");
+        });
+
+        box.addEventListener("drop", (e) => {
+            e.preventDefault();
+            box.classList.remove("drag-active");
+            handleFiles(e.dataTransfer?.files || null);
+        });
+    }
+
+    function renderPreviews(files: FileList, preview: HTMLElement, input: HTMLInputElement, dt: DataTransfer) {
+        preview.innerHTML = "";
+        if (files.length === 0) {
+            preview.classList.remove("has-file");
+            return;
+        }
+
+        preview.classList.add("has-file");
+        
+        // Setup a container for thumbnails
+        const container = document.createElement('div');
+        container.style.display = "flex";
+        container.style.flexWrap = "wrap";
+        container.style.gap = "0.8rem";
+        container.style.marginTop = "1rem";
+        container.style.justifyContent = "center";
+        preview.appendChild(container);
+
+        Array.from(files).forEach((file, index) => {
+            const wrapper = document.createElement("div");
+            wrapper.style.position = "relative";
+            wrapper.style.display = "inline-flex";
+            wrapper.style.flexDirection = "column";
+            wrapper.style.alignItems = "center";
+            wrapper.style.width = "70px";
+
+            // Delete button
+            const delBtn = document.createElement('button');
+            delBtn.type = "button";
+            delBtn.className = "delete-file-btn";
+            delBtn.title = "Remove file";
+            delBtn.innerHTML = "&times;";
+            delBtn.style.cssText = "position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 10;";
+            
+            delBtn.onclick = (e) => {
+                e.stopPropagation();
+                const dtNew = new DataTransfer();
+                Array.from(dt.files).forEach((f, i) => {
+                    if (i !== index) dtNew.items.add(f);
+                });
+                dt.items.clear();
+                Array.from(dtNew.files).forEach(f => dt.items.add(f));
+                input.files = dt.files;
+                renderPreviews(dt.files, preview, input, dt);
+            };
+
+            wrapper.appendChild(delBtn);
+
+            // Setup reader for image preview, or generic icon
+            if (file.type.startsWith("image/")) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.createElement("img");
+                    img.src = e.target?.result as string;
+                    img.style.cssText = "height: 60px; width: 60px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); object-fit: cover;";
+                    wrapper.insertBefore(img, wrapper.firstChild); 
+                };
+                reader.readAsDataURL(file);
+            } else {
+                const icon = document.createElement("div");
+                icon.style.cssText = "height: 60px; width: 60px; border-radius: 6px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 24px;";
+                icon.innerHTML = "📄";
+                wrapper.insertBefore(icon, wrapper.firstChild);
+            }
+
+            const name = document.createElement("span");
+            name.style.cssText = "display: block; font-size: 0.65rem; color: #64748b; margin-top: 0.35rem; text-align: center; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;";
+            name.innerText = file.name;
+            wrapper.appendChild(name);
+
+            container.appendChild(wrapper);
+        });
+    }
+
+    // Initialize Upload Boxes
+    setupUploadBox("drop-scan", "scanFile", "preview-scan");
+    setupUploadBox("drop-blood", "bloodFile", "preview-blood");
+    setupUploadBox("drop-rx", "rxFile", "preview-rx");
+
+    // --- Voice Logic ---
+    const recordBtn = document.getElementById("recordBtn");
+    const statusLabel = document.getElementById("recording-status");
+    const diagnosisArea = document.getElementById(
+        "doctorDiagnosis",
+    ) as HTMLTextAreaElement;
+
+    if (recordBtn && "webkitSpeechRecognition" in window) {
+        const recognition = new (window as any).webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = "en-US";
+
+        recordBtn.addEventListener("click", () => {
+            if (statusLabel?.classList.contains("hidden")) {
+                statusLabel.classList.remove("hidden");
+                recognition.start();
+                recordBtn.classList.add("recording");
+            } else {
+                recognition.stop();
+            }
+        });
+        recognition.onresult = (event: any) => {
+            diagnosisArea.value += " " + event.results[0][0].transcript;
+            statusLabel?.classList.add("hidden");
+            recordBtn.classList.remove("recording");
+        };
+        recognition.onend = () => {
+            statusLabel?.classList.add("hidden");
+            recordBtn.classList.remove("recording");
+        };
+    }
+
+    // --- Analysis Submit ---
+    const analysisForm = document.getElementById("analysis-form");
+    if (analysisForm) {
+        analysisForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const resultsContainer =
+                document.getElementById("analysis-results");
+            const loadingState = document.getElementById("loading-state");
+            const resultContent = document.getElementById("result-content");
+
+            resultsContainer?.classList.remove("hidden");
+            loadingState?.classList.remove("hidden");
+            resultContent?.classList.add("hidden");
+            resultsContainer?.scrollIntoView({ behavior: "smooth" });
+
+            const formData = new FormData(analysisForm as HTMLFormElement);
+            // Note: Add activePatientName to formData so API knows who it is for the prompt
+            if (activePatientName)
+                formData.append("patientName", activePatientName.innerText);
+
+            // CRITICAL: Send the ID for the relational DB
+            if (
+                activePatientId &&
+                activePatientId instanceof HTMLInputElement &&
+                activePatientId.value
+            ) {
+                formData.append("patientId", activePatientId.value);
+            } else {
+                alert("Error: No Patient Selected!");
+                loadingState?.classList.add("hidden");
+                return;
+            }
+
+            // In real V2, we would send patientId and save to clinical_visits table
+            // For now, we reuse the existing API which expects text fields
+
+            try {
+                const response = await fetch("/api/analyze-comparison", {
+                    method: "POST",
+                    body: formData,
+                });
+                const data = await response.json();
+                loadingState?.classList.add("hidden");
+                
+                if (data.visit_id) {
+                    // Redirect to the new "Doctor's Assessment" page
+                    window.location.href = `/visit/${data.visit_id}`;
+                } else if (resultContent) {
+                    // Fallback (shouldn't happen if API Works)
+                    resultContent.classList.remove("hidden");
+                    renderAnalysis(resultContent, data);
+                }
+            } catch (err) {
+                alert("Error: " + (err as Error).message);
+                loadingState?.classList.add("hidden");
+            }
+        });
+    }
+
+    // (Refactored Premium Report Renderer)
+    function renderAnalysis(container: HTMLElement, data: any) {
+        
+        // 1. Status Colors & Icons
+        const statusMap: any = {
+            "Aligned": { color: "#10b981", bg: "#d1fae5", icon: "✅" },
+            "Minor Deviation": { color: "#f59e0b", bg: "#fef3c7", icon: "⚠️" },
+            "Major Discrepancy": { color: "#ef4444", bg: "#fee2e2", icon: "🚨" }
+        };
+        const status = statusMap[data.status] || statusMap["Minor Deviation"];
+        
+        // 2. Build the UI
+        container.innerHTML = `
+            <div class="report-dashboard">
+                
+                <!-- HEADER: Executive Summary -->
+                <div class="report-header" style="border-left: 6px solid ${status.color}">
+                    <div class="header-main">
+                        <div class="status-badge" style="background:${status.bg}; color:${status.color}">
+                            ${status.icon} ${data.status}
+                        </div>
+                        <h2>Clinical Analysis Report</h2>
+                        <span class="meta-date">${new Date().toLocaleDateString()} • AI Consultant</span>
+                    </div>
+                    <div class="score-card">
+                        <div class="score-ring" style="border-color: ${status.color}">
+                            <span class="score-val">${data.match_score}%</span>
+                            <span class="score-label">Match</span>
+                        </div>
+                        <div class="deviation-mini">
+                            <label>Deviation</label>
+                            <div class="bar-bg"><div class="bar-fill" style="width:${data.deviation_score}%; background:${status.color}"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 1: The "Truth Table" Comparison -->
+                <div class="report-section">
+                    <h3 class="section-title">⚖️ Clinical Comparison</h3>
+                    <div class="comparison-table">
+                        <div class="col doctor-col">
+                            <h4>👨‍⚕️ Doctor's Diagnosis</h4>
+                            <ul>
+                                ${(data.comparison_analysis?.doctor_points || []).map((p:string) => `<li>${p}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div class="col evidence-col">
+                            <h4>📂 Evidence Findings</h4>
+                            <ul>
+                                ${(data.comparison_analysis?.evidence_points || []).map((p:string) => `<li>${p}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                    ${data.comparison_analysis?.discrepancies?.length ? `
+                        <div class="discrepancy-box">
+                            <strong>⚠️ Detected Discrepancies:</strong>
+                            <ul>${data.comparison_analysis.discrepancies.map((d:string) => `<li>${d}</li>`).join('')}</ul>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <!-- SECTION 2: AI Detailed Findings -->
+                <div class="report-grid">
+                    <div class="card findings-card">
+                        <h3>🤖 AI Radiology/Lab Interpretation</h3>
+                        <p>${data.ai_analysis.findings}</p>
+                    </div>
+                    <div class="card impression-card">
+                        <h3>💡 Clinical Impression</h3>
+                        <p>${data.ai_analysis.impression}</p>
+                        <div class="urgency-tag ${data.ai_analysis.urgency?.toLowerCase()}">
+                            Urgency: ${data.ai_analysis.urgency || 'Routine'}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: Action Plan -->
+                <div class="report-section action-plan">
+                    <h3 class="section-title">✅ Recommended Next Steps</h3>
+                    <div class="checklist">
+                        ${(data.recommendations || []).map((step:string) => `
+                            <div class="check-item">
+                                <input type="checkbox" />
+                                <label>${step}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+            </div>
+        `;
+    }
+</script>
+
+<style>
+    /* New Split View Styles */
+    .hidden {
+        display: none !important;
+    }
+
+    .doctor-ai-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    .header-badge {
+        background: #e0e7ff;
+        color: #3730a3;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+    }
+
+    .workspace-grid {
+        display: grid;
+        gap: 1.5rem;
+    }
+    #intake-section {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    /* MODERN EMR CARDS */
+    .panel {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #f1f5f9;
+        padding: 1.5rem 1.8rem;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -2px rgba(0,0,0,0.03);
+        transition: box-shadow 0.2s;
+    }
+    .panel:hover {
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -4px rgba(0,0,0,0.05);
+    }
+    .panel-header {
+        margin-bottom: 1.2rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid #f8fafc;
+    }
+    .panel-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #1e293b;
+        font-weight: 600;
+        letter-spacing: -0.2px;
+    }
+    
+    /* SEAMLESS INPUT FIELDS */
+    .input-group label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.4rem;
+    }
+    .input-group input, 
+    .diagnosis-panel textarea {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        background: #f8fafc;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        color: #0f172a;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+    .input-group input:focus,
+    .diagnosis-panel textarea:focus {
+        background: white;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+    .input-group input::placeholder,
+    .diagnosis-panel textarea::placeholder {
+        color: #94a3b8;
+    }
+    
+    .diagnosis-panel textarea {
+        resize: vertical;
+        line-height: 1.5;
+    }
+
+    /* DASHBOARD LAYOUT */
+    .workspace-main-layout {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 2rem;
+        align-items: start;
+    }
+    
+    /* HISTORY TIMELINE SIDEBAR */
+    .history-sidebar {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        padding: 1.2rem;
+        height: calc(100vh - 120px);
+        max-height: 800px;
+        overflow-y: auto;
+        box-shadow: inset -4px 0 15px -10px rgba(0,0,0,0.02);
+    }
+    
+    /* Custom Scrollbar for Sidebar */
+    .history-sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .history-sidebar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .history-sidebar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+    .sidebar-header h3 { 
+        margin: 0 0 1.2rem 0; font-size: 0.95rem; color: #64748b; 
+        font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+        border-bottom: 2px solid #f1f5f9; padding-bottom: 0.8rem; 
+    }
+    
+    .timeline { display: flex; flex-direction: column; gap: 1.2rem; }
+    
+    /* CLINICAL HISTORY CARD (Medical Light Theme) */
+    .history-card {
+        background: #ffffff;
+        border: 1px solid #cbd5e1; /* Neutral Border */
+        border-radius: 10px;
+        padding: 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        transition: all 0.2s ease-in-out;
+        overflow: hidden;
+        cursor: pointer;
+    }
+    .history-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+        border-color: #3b82f6; /* Blue Accent on Hover */
+    }
+
+    .history-card.clickable-card:active { transform: scale(0.99); }
+    
+    .h-row.top {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 1rem 1.2rem 0.6rem 1.2rem;
+        background: #ffffff;
+    }
+    
+    /* Reason Row */
+    .h-row.reason-row { display: flex; gap: 0.5rem; padding: 0 1.2rem 0.6rem 1.2rem; font-size: 0.85rem; }
+    .h-row.reason-row .label { color: #64748b; font-weight: 500; }
+    .h-row.reason-row .val { color: #334155; font-weight: 600; }
+
+    .h-date { font-weight: 700; color: #1e293b; font-size: 0.95rem; }
+    
+    /* Consultation Tag - Soft Blue */
+    .h-tag { 
+        background: #eff6ff; color: #2563eb; 
+        font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+        padding: 4px 8px; border-radius: 4px; border: 1px solid #dbeafe;
+    }
+
+    /* Status Badge - Soft Green */
+    .status-badge {
+        font-size: 0.75rem; font-weight: 700; color: #059669; background: #ecfdf5;
+        padding: 2px 8px; border-radius: 12px; border: 1px solid #d1fae5;
+    }
+
+    .h-main { padding: 0 1.2rem 1rem 1.2rem; }
+    .h-diagnosis { 
+        font-size: 1.05rem; color: #0f172a; font-weight: 700; /* Dark Slate Title */
+        margin-bottom: 0.6rem; line-height: 1.4;
+    }
+    .h-vitals-grid { font-size: 0.85rem; color: #475569; display: flex; gap: 0.8rem; background: #f8fafc; padding: 0.5rem; border-radius: 6px; }
+
+    /* Footer / AI Section */
+    .h-footer { 
+        background: #fafafa; border-top: 1px solid #f1f5f9; 
+        padding: 0.8rem 1.2rem;
+    }
+    .ai-badge { 
+        display: inline-flex; font-size: 0.75rem; font-weight: 600; padding: 2px 8px; 
+        border-radius: 99px; margin-bottom: 0.5rem; border: 1px solid transparent;
+    }
+    .ai-badge.high { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+    .ai-badge.med { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+
+    /* Click Hint - Subtle at TOP */
+    .click-hint {
+        background: #ffffff; color: #94a3b8; font-size: 0.65rem; text-align: center;
+        padding: 0.3rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+        border-bottom: 1px solid #f1f5f9; transition: all 0.2s;
+    }
+    .history-card:hover .click-hint { background: #f0f9ff; color: #3b82f6; border-bottom-color: #e0f2fe; } 
+        padding: 0.6rem 1rem; 
+        border-top: 1px solid #f1f5f9;
+        display: flex; flex-direction: column; gap: 0.3rem; 
+    }
+    .ai-badge { display: inline-flex; font-size: 0.75rem; font-weight: 700; }
+    .ai-badge.high { color: #059669; }
+    .ai-badge.med { color: #d97706; }
+    
+    .ai-text { font-size: 0.8rem; color: #64748b; font-style: italic; margin: 0; line-height: 1.3; }
+
+    .h-plan { margin-top: 0.5rem; border-top: 1px dashed #e2e8f0; padding-top: 0.5rem; }
+    .h-plan strong { font-size: 0.75rem; color: #475569; display: block; margin-bottom: 0.2rem; }
+    .h-plan ul { padding-left: 1rem; margin: 0; }
+    .h-plan li { font-size: 0.75rem; color: #334155; margin-bottom: 0.1rem; }
+
+    .click-hint {
+        background: #f1f5f9;
+        color: #3b82f6;
+        font-size: 0.7rem;
+        text-align: center;
+        padding: 0.3rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        border-top: 1px solid #e2e8f0;
+    }
+    .history-card:hover .click-hint {
+        background: #e0f2fe;
+        color: #0284c7;
+    }
+
+    @media(max-width: 1024px) {
+        .workspace-main-layout { grid-template-columns: 1fr; }
+        .history-sidebar { display: none; } /* Hide on mobile for now */
+    }
+
+    /* MODAL STYLES */
+    dialog::backdrop { background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); }
+    .report-modal {
+        border: none; border-radius: 12px; padding: 0; 
+        width: 100%; max-width: 800px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .report-container { padding: 2rem; background: white; font-family: 'Inter', sans-serif; color: #1e293b; }
+    
+    .rpt-header { 
+        display: flex; justify-content: space-between; align-items: center; 
+        border-bottom: 2px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 1.5rem; 
+        position: relative;
+    }
+    .rpt-brand h1 { font-size: 1.5rem; margin: 0; color: #3b82f6; }
+    .rpt-brand span { font-size: 0.85rem; color: #64748b; letter-spacing: 0.5px; text-transform: uppercase; }
+    .rpt-meta p { margin: 0.2rem 0; font-size: 0.9rem; }
+    
+    .close-icon-btn { 
+        background: transparent; border: none; font-size: 2rem; color: #cbd5e1; 
+        cursor: pointer; line-height: 1; padding: 0 0.5rem;
+        transition: color 0.2s;
+    }
+    .close-icon-btn:hover { color: #ef4444; }
+
+    .rpt-section { margin-bottom: 2rem; }
+    .rpt-section h3 { 
+        font-size: 1.1rem; color: #0f172a; margin-bottom: 0.8rem; 
+        border-left: 4px solid #3b82f6; padding-left: 0.5rem; 
+    }
+    
+    .rpt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; font-size: 0.95rem; }
+    .rpt-vitals { display: flex; gap: 1.5rem; background: #f8fafc; padding: 0.8rem; border-radius: 6px; font-weight: 500; font-size: 0.9rem; }
+
+    .rpt-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; }
+
+    /* PRINT STYLES */
+    @media print {
+        /* Hide everything by default */
+        body * { visibility: hidden; }
+        
+        /* Reset HTML/Body for full page printing */
+        html, body { height: auto; overflow: visible !important; }
+
+        /* Show only the modal and its children */
+        #reportModal, #reportModal * { visibility: visible; }
+        
+        /* Position modal to take over the document flow */
+        #reportModal { 
+            position: absolute; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+            max-width: 100% !important; 
+            height: auto !important; 
+            max-height: none !important;
+            overflow: visible !important;
+            box-shadow: none; 
+            padding: 0; 
+            margin: 0;
+            border: none;
+            background: white;
+        }
+
+        .report-container { 
+            padding: 0; 
+            margin: 0; 
+            width: 100%;
+        }
+
+        /* Hide specific elements inside modal that shouldn't print */
+        .no-print { display: none !important; }
+        
+        /* Ensure background colors print */
+        * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+
+    .report-dashboard { background: #f8fafc; border-radius: 16px; padding: 2rem; border: 1px solid #e2e8f0; }
+    
+    /* Report Header - General */
+    .report-header { 
+        display: flex; justify-content: space-between; align-items: center; 
+        background: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05); gap: 1rem;
+    }
+    .header-main h2 { margin: 0.5rem 0 0.2rem 0; font-size: 1.5rem; color: #1e293b; }
+    
+    /* MODAL OVERRIDES for Report Header */
+    /* When clean report is inside modal, compact it */
+    .report-modal .report-header {
+        padding: 1rem; margin-bottom: 1rem;
+        border: 1px solid #f1f5f9; box-shadow: none;
+    }
+    .report-modal .report-header h2 { 
+        display: none; /* Hide redundant title in modal */ 
+    }
+    .report-modal .header-main { display: flex; flex-direction: column; gap: 0.2rem; }
+    
+    .status-badge { display: inline-block; padding: 0.4rem 1rem; border-radius: 50px; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; width: fit-content; }
+    .meta-date { color: #94a3b8; font-size: 0.8rem; }
+
+    .score-card { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+    .score-ring { 
+        width: 80px; height: 80px; border-radius: 50%; border: 6px solid #e2e8f0; 
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        background: white;
+    }
+    .report-modal .score-ring { width: 60px; height: 60px; border-width: 4px; } /* Smaller ring in modal */
+    
+    .score-val { font-size: 1.4rem; font-weight: 800; line-height: 1; }
+    .report-modal .score-val { font-size: 1.1rem; }
+    
+    .score-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; }
+    .deviation-mini { width: 100px; }
+    .bar-bg { height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-top: 4px; }
+    .bar-fill { height: 100%; }
+
+    /* Comparison Table */
+    .comparison-table { display: flex; gap: 0; border: 1px solid #cbd5e1; border-radius: 12px; overflow: hidden; margin: 1rem 0; background: white; }
+    .col { flex: 1; padding: 1.5rem; }
+    .doctor-col { background: #f8fafc; border-right: 1px solid #cbd5e1; }
+    .evidence-col { background: #fff; }
+    .col h4 { margin-top: 0; color: #475569; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+    .col ul { padding-left: 1.2rem; margin: 0; }
+    .col li { margin-bottom: 0.5rem; color: #334155; line-height: 1.5; }
+    
+    .discrepancy-box { background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 8px; margin-top: 1rem; border: 1px solid #fecaca; }
+
+    /* Report Grid & Cards */
+    .section-title { font-size: 1.2rem; color: #1e293b; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+    .card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+    .card h3 { margin-top: 0; font-size: 1.1rem; color: #0f172a; margin-bottom: 1rem; }
+    .card p { color: #475569; line-height: 1.6; }
+
+    .urgency-tag { display: inline-block; margin-top: 1rem; padding: 0.3rem 0.8rem; border-radius: 6px; font-weight: 600; font-size: 0.85rem; }
+    .urgency-tag.routine { background: #dbf4ff; color: #0060df; }
+    .urgency-tag.urgent { background: #fff7ed; color: #c2410c; }
+    .urgency-tag.critical { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+    /* Checklist */
+    .action-plan { background: #fff; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; }
+    .checklist { display: grid; gap: 0.8rem; }
+    .check-item { display: flex; items-center; gap: 0.8rem; padding: 0.5rem; transition: background 0.2s; border-radius: 6px; }
+    .check-item:hover { background: #f1f5f9; }
+    .check-item input { width: 1.2rem; height: 1.2rem; accent-color: var(--color-primary); cursor: pointer; }
+    .check-item label { cursor: pointer; color: #334155; font-weight: 500; }
+
+    @media(max-width: 768px) {
+        .report-header { flex-direction: column; text-align: center; gap: 1rem; }
+        .comparison-table { flex-direction: column; }
+        .doctor-col { border-right: none; border-bottom: 1px solid #cbd5e1; }
+        .report-grid { grid-template-columns: 1fr; }
+    }
+    .search-box {
+        position: relative;
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        margin-top: 0.5rem;
+        max-height: 300px;
+        overflow-y: auto;
+        z-index: 100;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .result-item {
+        padding: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        cursor: pointer;
+        transition: background 0.2s;
+        display: flex; flex-direction: column; gap: 0.2rem;
+    }
+    .result-item:hover { background: #f8fafc; }
+    .result-item strong { color: #1e293b; font-size: 0.95rem; }
+    .result-item span { color: #64748b; font-size: 0.8rem; }
+
+    /* Form Grid */
+    .form-grid {
+        display: grid;
+        gap: 1rem;
+    }
+    .form-grid input,
+    .form-grid select {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+    }
+    .row-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    .create-btn {
+        margin-top: auto;
+        background: var(--color-primary);
+        color: white;
+        border: none;
+        padding: 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    /* Patient Context Banner (Light Medical Theme) */
+    .patient-context-banner {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-top: 4px solid #3b82f6; /* Medical Blue Accent */
+        color: #0f172a;
+        padding: 1.5rem 2rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+        display: block;
+    }
+    
+    .banner-top-row {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .patient-info h2 { 
+        font-size: 2rem; font-weight: 700; color: #1e293b; margin: 0; 
+        letter-spacing: -0.5px;
+    }
+    .details-text {
+        font-size: 0.95rem; color: #64748b; font-weight: 500; display: block; margin-top: 0.2rem; margin-left: 0;
+    }
+
+    /* Change Patient Button */
+    .sm-btn.outline {
+        background: white; border: 1px solid #cbd5e1; color: #475569;
+        padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;
+        transition: all 0.2s; font-weight: 500;
+    }
+    .sm-btn.outline:hover {
+        border-color: #3b82f6; color: #3b82f6; background: #eff6ff;
+    }
+
+    /* Stats */
+    .visit-stats { text-align: right; }
+    .stat-val { font-size: 1.8rem; font-weight: 700; color: #0284c7; display: block; line-height: 1; }
+    .stat-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+
+    /* Tags */
+    .health-tags {
+        display: flex; gap: 0.5rem; margin-top: 0.5rem; align-items: center; flex-wrap: wrap;
+    }
+    
+    .tag-label { font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 0.2rem; }
+    .empty-tag { font-size: 0.85rem; color: #64748b; font-weight: 500; }
+    .divider { margin: 0 0.8rem; border-left: 1px solid #e2e8f0; height: 16px; display: inline-block; }
+    .blood-val { color: #e11d48; font-weight: 800; }
+
+    .tag { 
+        padding: 0.25rem 0.6rem; 
+        border-radius: 6px; 
+        font-size: 0.75rem; 
+        font-weight: 600; 
+        border: 1px solid transparent; 
+        letter-spacing: 0.2px; 
+    }
+    .tag.condition { background: #f8fafc; color: #475569; border-color: #e2e8f0; }
+    .tag.allergy { background: #fff1f2; color: #be123c; border-color: #ffe4e6; } /* Warning Yellow/Orange */
+
+    /* Upload Grid Reuse */
+    .upload-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+    .upload-box {
+        border: 2px dashed #cbd5e1;
+        padding: 1.5rem;
+        text-align: center;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .upload-box:hover {
+        border-color: var(--color-primary);
+        background: #f8fafc;
+    }
+    .upload-box.drag-active {
+        border-color: var(--color-primary);
+        background: #e0e7ff;
+        transform: scale(1.02);
+    }
+    .file-preview img {
+        max-height: 80px;
+        margin: 0 auto;
+        display: block;
+    }
+
+    @media (max-width: 768px) {
+        #intake-section {
+            grid-template-columns: 1fr;
+        }
+        .upload-grid {
+            grid-template-columns: 1fr;
+        }
+        .patient-context-banner {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+    }
+</style>

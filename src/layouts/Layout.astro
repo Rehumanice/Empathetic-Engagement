@@ -1,0 +1,52 @@
+---
+import "../styles/global.css";
+
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="description"
+			content="AI-driven precision for healthcare professionals."
+		/>
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700&display=swap"
+			rel="stylesheet"
+		/>
+		<title>{title}</title>
+	</head>
+	<body>
+		<nav class="main-nav">
+			<div class="nav-content">
+				<a href="/" class="logo">
+					<img
+						src="/logo.png"
+						alt="Empathetic Engagement Logo"
+						style="height: 38px; width: auto; object-fit: contain;"
+					/>
+					Empathetic Engagement
+				</a>
+				<div class="nav-links">
+					<a href="/" class="nav-link">Home</a>
+					<a href="/analyze" class="nav-link">Imaging</a>
+					<a href="/blood-analysis" class="nav-link">Blood Reports</a>
+					<a href="/doctor-assisted-ai" class="nav-link">Doctor AI</a>
+					<a href="/history" class="nav-link">History</a>
+				</div>
+			</div>
+		</nav>
+		<slot />
+	</body>
+</html>

@@ -1,0 +1,141 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+if (Astro.request.method === "POST") {
+    // TODO: Add Supabase auth logic here
+    console.log("Login attempt");
+    return Astro.redirect("/dashboard");
+}
+---
+
+<Layout title="Login - Empathetic Engagement">
+    <main>
+        <div class="login-container">
+            <h1>Welcome Back</h1>
+            <p class="subtitle">Access your diagnostic dashboard</p>
+
+            <form method="POST">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        required
+                        placeholder="doctor@hospital.com"
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        required
+                        placeholder="••••••••"
+                    />
+                </div>
+
+                <button type="submit" class="button primary">Sign In</button>
+
+                <p class="auth-link">
+                    Don't have an account? <a href="/signup">Sign up</a>
+                </p>
+            </form>
+        </div>
+    </main>
+</Layout>
+
+<style>
+    main {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 2rem;
+    }
+
+    .login-container {
+        background: white;
+        padding: 3rem;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* Light shadow for white theme */
+        width: 100%;
+        max-width: 400px;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        text-align: center;
+        color: var(--color-text-main);
+    }
+
+    .subtitle {
+        text-align: center;
+        color: var(--color-text-muted);
+        margin-bottom: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: var(--color-text-main);
+    }
+
+    input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-family: var(--font-body);
+        font-size: 1rem;
+        transition: border-color 0.2s;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: var(--color-primary);
+    }
+
+    .button {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--color-primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .button:hover {
+        background: var(--color-accent);
+    }
+
+    .auth-link {
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+    }
+
+    .auth-link a {
+        color: var(--color-secondary);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .auth-link a:hover {
+        text-decoration: underline;
+    }
+</style>

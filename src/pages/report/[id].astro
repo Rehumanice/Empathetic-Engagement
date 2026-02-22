@@ -1,0 +1,937 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { supabase } from "../../lib/supabase";
+
+export const prerender = false;
+
+const { id } = Astro.params;
+
+if (!id) {
+    return Astro.redirect("/history");
+}
+
+const { data: report, error } = await supabase
+    .schema("medicalai")
+    .from("reports")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+if (error || !report) {
+    return Astro.redirect("/history");
+}
+
+const data = report.full_analysis_json;
+const type = report.report_type;
+---
+
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
+    integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"></script>
+
+<Layout title="Report Details - Empathetic Engagement">
+    <main class="report-page">
+        <div class="page-navigation">
+            <a href="/history" class="back-link">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    ><path d="m15 18-6-6 6-6"></path></svg
+                >
+                Back to History
+            </a>
+            <span class="report-date"
+                >{new Date(report.created_at).toLocaleDateString()}</span
+            >
+            <button
+                onclick="downloadPDF()"
+                class="download-btn"
+                style="margin-left: 1rem; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 0.25rem 0.75rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 0.25rem;"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    ><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                    ></path><polyline points="7 10 12 15 17 10"></polyline><line
+                        x1="12"
+                        y1="15"
+                        x2="12"
+                        y2="3"></line></svg
+                >
+                Download PDF
+            </button>
+        </div>
+
+        <div class="report-container">
+            <div id="report-content"></div>
+        </div>
+
+        <!-- CUSTOMIZE DIET MODAL -->
+        <div id="diet-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Customize Diet Plan</h3>
+                    <button class="close-btn" onclick="closeDietModal()"
+                        >×</button
+                    >
+                </div>
+                <div class="modal-body">
+                    <p style="color: #64748b; margin-bottom: 1.5rem;">
+                        Update the dietary preferences specifically for this
+                        report.
+                    </p>
+
+                    <div class="input-group" style="margin-bottom: 1rem;">
+                        <label
+                            for="modal-diet-select"
+                            style="display: block; font-weight: 500; margin-bottom: 0.5rem;"
+                            >Diet Type</label
+                        >
+                        <select
+                            id="modal-diet-select"
+                            style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;"
+                        >
+                            <option value="Balanced">Balanced</option>
+                            <option value="Vegetarian">Vegetarian</option>
+                            <option value="Vegan">Vegan</option>
+                            <option value="Keto">Keto / Low Carb</option>
+                            <option value="Paleo">Paleo</option>
+                            <option value="Mediterranean">Mediterranean</option>
+                            <option value="Diabetic">Diabetic Friendly</option>
+                            <option value="Low FODMAP">Low FODMAP</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group" style="margin-bottom: 1.5rem;">
+                        <label
+                            for="modal-cuisine-select"
+                            style="display: block; font-weight: 500; margin-bottom: 0.5rem;"
+                            >Cuisine Preference</label
+                        >
+                        <select
+                            id="modal-cuisine-select"
+                            style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;"
+                        >
+                            <option value="International">International</option>
+                            <option value="South Indian">South Indian</option>
+                            <option value="North Indian">North Indian</option>
+                            <option value="Continental">Continental</option>
+                            <option value="Asian">Asian</option>
+                            <option value="American">American</option>
+                            <option value="Mediterranean">Mediterranean</option>
+                        </select>
+                    </div>
+
+                    <button
+                        id="regenerate-btn"
+                        onclick="regenerateDiet()"
+                        style="width: 100%; background: #0ea5e9; color: white; border: none; padding: 0.8rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 0.5rem;"
+                    >
+                        <span>✨</span> Regenerate Plan
+                    </button>
+                    <p
+                        id="reg-status"
+                        style="margin-top: 1rem; text-align: center; font-size: 0.9rem; color: #64748b; min-height: 1.5rem;"
+                    >
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+</Layout>
+
+<script define:vars={{ type, data }}>
+    const container = document.getElementById("report-content");
+    // Store server data globally to allow updates
+    let appData = data;
+
+    // --- AUDIO FUNCTIONS ---
+    window.speakSummary = function (text) {
+        if ("speechSynthesis" in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            window.speechSynthesis.speak(utterance);
+        }
+    };
+
+    window.stopAudio = function () {
+        if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    };
+
+    window.switchReportView = function (view) {
+        const patientSection = document.getElementById("view-patient");
+        const doctorSection = document.getElementById("view-doctor");
+        const patientBtn = document.getElementById("btn-patient");
+        const doctorBtn = document.getElementById("btn-doctor");
+
+        if (view === "patient") {
+            if (patientSection) patientSection.style.display = "block";
+            if (doctorSection) doctorSection.style.display = "none";
+            if (patientBtn) {
+                patientBtn.style.background = "#ffffff";
+                patientBtn.style.color = "#000000";
+                patientBtn.classList.add("active");
+            }
+            if (doctorBtn) {
+                doctorBtn.style.background = "transparent";
+                doctorBtn.style.color = "#6b7280";
+                doctorBtn.classList.remove("active");
+            }
+        } else {
+            if (patientSection) patientSection.style.display = "none";
+            if (doctorSection) doctorSection.style.display = "block";
+            if (doctorBtn) {
+                doctorBtn.style.background = "#ffffff";
+                doctorBtn.style.color = "#000000";
+                doctorBtn.classList.add("active");
+            }
+            if (patientBtn) {
+                patientBtn.style.background = "transparent";
+                patientBtn.style.color = "#6b7280";
+                patientBtn.classList.remove("active");
+            }
+        }
+    };
+
+    window.downloadPDF = function () {
+        document.body.classList.add("printing");
+        window.print();
+        document.body.classList.remove("printing");
+    };
+
+    window.openDietModal = function () {
+        const modal = document.getElementById("diet-modal");
+        if (modal) modal.classList.remove("hidden");
+    };
+
+    window.closeDietModal = function () {
+        const modal = document.getElementById("diet-modal");
+        if (modal) modal.classList.add("hidden");
+    };
+
+    window.regenerateDiet = async function () {
+        const pathParts = window.location.pathname.split("/");
+        const reportId = pathParts[pathParts.length - 1];
+
+        const diet = document.getElementById("modal-diet-select").value;
+        const cuisine = document.getElementById("modal-cuisine-select").value;
+        const btn = document.getElementById("regenerate-btn");
+        const status = document.getElementById("reg-status");
+
+        if (!reportId) {
+            alert("Error: Report ID not found");
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = "Generating... ⏳";
+        status.innerText = "Consulting AI Nutritionist...";
+
+        try {
+            const response = await fetch("/api/regenerate-diet", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ reportId, diet, cuisine }),
+            });
+
+            if (!response.ok) throw new Error("Failed to regenerate");
+
+            const newDietPlan = await response.json();
+
+            status.innerText = "Success! Updating View...";
+
+            // UPDATE DATA AND RENDER IMMEDIATELY (No Reload)
+            appData.dietary_plan = newDietPlan;
+            renderReport(appData);
+
+            closeDietModal();
+            btn.disabled = false;
+            btn.innerHTML = "✨ Regenerate Plan";
+            status.innerText = "";
+            alert("Diet Plan Updated Successfully!");
+        } catch (e) {
+            console.error(e);
+            status.innerText = "Error: " + e.message;
+            btn.disabled = false;
+            btn.innerHTML = "✨ Regenerate Plan";
+        }
+    };
+
+    function renderReport(data) {
+        let html = "";
+
+        // 1. HEADER & TOGGLE
+        html += `
+            <div class="report-header-card">
+                <div class="header-icon">${type === "blood" ? "🩸" : "🩻"}</div>
+                <div class="header-text">
+                    <h1>${type === "blood" ? "Blood Analysis Report" : "Scan Analysis Report"}</h1>
+                    <p>AI-Generated Medical Insight</p>
+                </div>
+                ${
+                    type === "blood" && data.healthScore
+                        ? `
+                <div class="health-score-badge">
+                    <span class="score">${data.healthScore}%</span>
+                    <span class="label">Health Score</span>
+                </div>
+                `
+                        : ""
+                }
+            </div>
+
+            <div class="view-toggle-container">
+                 <div class="view-toggle" style="display: flex; gap: 1rem; justify-content: center; background: rgba(238, 242, 255, 0.95); padding: 0.5rem 1rem; border-radius: 50px; width: fit-content; margin: 0 auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.5);">
+                    <button class="toggle-btn active" onclick="switchReportView('patient')" id="btn-patient" style="padding: 0.5rem 1.75rem; border-radius: 40px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; font-size: 0.95rem; background: #ffffff; color: #000000;">
+                        🧑‍🦳 Patient View
+                    </button>
+                    <button class="toggle-btn" onclick="switchReportView('doctor')" id="btn-doctor" style="padding: 0.5rem 1.75rem; border-radius: 40px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; background: transparent; color: #6b7280; font-size: 0.95rem;">
+                        👨‍⚕️ Doctor View
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // 2. PATIENT VIEW
+        html += `<div id="view-patient" class="view-section">`;
+
+        // Tanglish Summary
+        if (data.summary_tamil) {
+            html += `
+                <div class="tanglish-banner">
+                    <div class="banner-header">
+                        <div class="icon-title">
+                            <span style="font-size: 1.5rem;">🗣️</span>
+                            <h3>Tanglish Summary</h3>
+                        </div>
+                         <div class="audio-controls">
+                            <button onclick="speakSummary('${data.summary_tamil.replace(/'/g, "\\'")}')" class="btn-play">
+                                <span>🔊</span> Play
+                            </button>
+                            <button onclick="stopAudio()" class="btn-stop">
+                                <span>Tw</span> Stop
+                            </button>
+                        </div>
+                    </div>
+                    <p>${data.summary_tamil}</p>
+                </div>
+            `;
+        }
+
+        // English Patient Summary
+        const pSummary =
+            data.patient_summary ||
+            data.communication?.patient_summary ||
+            data.summary ||
+            data.impression;
+        if (pSummary) {
+            html += `
+                <div class="patient-summary-card">
+                    <h3>Patient Summary</h3>
+                    <p>${pSummary}</p>
+                </div>
+            `;
+        }
+
+        html += `</div>`; // End Patient View
+
+        // 3. DOCTOR VIEW
+        html += `<div id="view-doctor" class="view-section" style="display: none;">`;
+
+        const dSummary =
+            data.doctor_summary ||
+            data.communication?.doctor_summary ||
+            data.findings ||
+            data.impression;
+        if (dSummary) {
+            html += `
+                <div class="doctor-summary-card">
+                    <div class="card-header">
+                         <span style="font-size: 1.5rem;">🩺</span>
+                         <h3>Clinical Assessment</h3>
+                    </div>
+                    <div class="technical-text">${dSummary}</div>
+                    ${
+                        data.diagnosis
+                            ? `<div class="diagnosis-box"><strong>Diagnosis:</strong> ${data.diagnosis}</div>`
+                            : ""
+                    }
+                </div>
+            `;
+        }
+
+        if (
+            type === "scan" &&
+            data.findings &&
+            !data.doctor_summary &&
+            !data.communication?.doctor_summary
+        ) {
+            // If findings weren't used in summary above
+            html += `
+                <div class="doctor-summary-card">
+                    <h3>Radiological Findings</h3>
+                    <div class="technical-text">${data.findings}</div>
+                </div>
+           `;
+        }
+
+        html += `</div>`; // End Doctor View
+
+        // 4. DETAILS (Common)
+
+        if (type === "blood" && data.panels) {
+            data.panels.forEach((panel) => {
+                html += `
+                    <div class="panel-group">
+                        <div class="panel-header">
+                            <h3>${panel.title}</h3>
+                        </div>
+                        <div class="test-grid">
+                `;
+                if (panel.tests) {
+                    panel.tests.forEach((test) => {
+                        const statusClass =
+                            test.flag === "error"
+                                ? "status-error"
+                                : test.flag === "warning"
+                                  ? "status-warning"
+                                  : "status-success";
+                        html += `
+                            <div class="test-card ${statusClass}">
+                                <div class="test-header">
+                                    <h4>${test.name}</h4>
+                                    <span class="badge ${statusClass}">${test.status}</span>
+                                </div>
+                                <div class="test-value">
+                                    <span class="value">${test.value}</span>
+                                    <span class="unit">${test.unit}</span>
+                                </div>
+                                <div class="test-range">Ref: ${test.range}</div>
+                            </div>
+                        `;
+                    });
+                }
+                html += `</div></div>`;
+            });
+        }
+
+        if (type === "scan" && data.measurements) {
+            html += `<div class="panel-group"><h3>Quantitative Analysis</h3><div class="test-grid">`;
+            data.measurements.forEach((m) => {
+                html += `
+                <div class="test-card">
+                    <h4>${m.label}</h4>
+                    <div class="test-value">${m.value}</div>
+                    <div class="test-range">${m.status}</div>
+                </div>
+              `;
+            });
+            html += `</div></div>`;
+        }
+
+        // Dietary
+        if (data.dietary_plan) {
+            const diet = data.dietary_plan;
+            html += `
+            <div class="panel-group dietary-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3>Dietary Recommendations</h3>
+                     <button onclick="openDietModal()" style="font-size: 0.8rem; padding: 0.3rem 0.8rem; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 0.3rem;">
+                        <span>🍽️</span> Customize
+                    </button>
+                </div>
+                
+                ${
+                    diet.diet_preference || diet.cuisine_preference
+                        ? `
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                        ${diet.diet_preference ? `<span style="background: #ecfdf5; color: #047857; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; font-weight: 500; border: 1px solid #a7f3d0;">${diet.diet_preference}</span>` : ""}
+                        ${diet.cuisine_preference ? `<span style="background: #fff7ed; color: #c2410c; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; font-weight: 500; border: 1px solid #fed7aa;">${diet.cuisine_preference}</span>` : ""}
+                    </div>
+                `
+                        : ""
+                }
+
+                <p style="margin-bottom: 1rem;">${diet.description}</p>
+                
+                ${
+                    diet.macronutrients
+                        ? `
+                    <div class="macro-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; background: #f8fafc; padding: 1rem; border-radius: 12px;">
+                        <div class="macro-item" style="text-align: center;">
+                            <span style="display: block; font-size: 1.5rem; font-weight: bold; color: #ef4444;">${diet.macronutrients.protein || "-"}</span>
+                            <span style="font-size: 0.8rem; color: #64748b;">Protein</span>
+                        </div>
+                         <div class="macro-item" style="text-align: center;">
+                            <span style="display: block; font-size: 1.5rem; font-weight: bold; color: #eab308;">${diet.macronutrients.carbs || "-"}</span>
+                            <span style="font-size: 0.8rem; color: #64748b;">Carbs</span>
+                        </div>
+                         <div class="macro-item" style="text-align: center;">
+                            <span style="display: block; font-size: 1.5rem; font-weight: bold; color: #22c55e;">${diet.macronutrients.fats || "-"}</span>
+                            <span style="font-size: 0.8rem; color: #64748b;">Fats</span>
+                        </div>
+                    </div>
+                `
+                        : ""
+                }
+
+                 <div class="diet-grid">
+                    <div class="diet-card allowed">
+                        <h4>✅ Allowed</h4>
+                        <ul>${diet.allowed?.map((f) => `<li>${f}</li>`).join("") || ""}</ul>
+                    </div>
+                    <div class="diet-card avoid">
+                        <h4>❌ Avoid</h4>
+                        <ul>${diet.avoid?.map((f) => `<li>${f}</li>`).join("") || ""}</ul>
+                    </div>
+                </div>
+
+                ${
+                    diet.meal_plan
+                        ? `
+                     <div class="meal-plan-section" style="margin-top: 1.5rem;">
+                        <h4 style="margin-bottom: 1rem;">Daily Meal Plan</h4>
+                        <div class="meal-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div class="meal-card" style="background: #fff; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px;">
+                                <strong style="color: #ea580c;">Breakfast</strong>
+                                <ul style="margin: 0.5rem 0 0 1rem; padding: 0; font-size: 0.9rem;">
+                                    ${diet.meal_plan.breakfast?.map((m) => `<li>${m}</li>`).join("") || "<li>Balanced meal</li>"}
+                                </ul>
+                            </div>
+                             <div class="meal-card" style="background: #fff; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px;">
+                                <strong style="color: #ea580c;">Lunch</strong>
+                                <ul style="margin: 0.5rem 0 0 1rem; padding: 0; font-size: 0.9rem;">
+                                    ${diet.meal_plan.lunch?.map((m) => `<li>${m}</li>`).join("") || "<li>Balanced meal</li>"}
+                                </ul>
+                            </div>
+                             <div class="meal-card" style="background: #fff; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px;">
+                                <strong style="color: #ea580c;">Dinner</strong>
+                                <ul style="margin: 0.5rem 0 0 1rem; padding: 0; font-size: 0.9rem;">
+                                    ${diet.meal_plan.dinner?.map((m) => `<li>${m}</li>`).join("") || "<li>Light meal</li>"}
+                                </ul>
+                            </div>
+                        </div>
+                     </div>
+                `
+                        : ""
+                }
+            </div>
+          `;
+        }
+
+        container.innerHTML = html;
+    }
+
+    // Initial Render
+    renderReport(appData);
+</script>
+
+<style>
+    .report-page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .page-navigation {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .back-link {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--color-text-muted);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .back-link:hover {
+        color: var(--color-primary);
+    }
+
+    .report-header-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .header-icon {
+        font-size: 3rem;
+        background: #f8fafc;
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+
+    .header-text h1 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: var(--color-text-main);
+    }
+
+    .header-text p {
+        margin: 0.25rem 0 0;
+        color: var(--color-text-muted);
+    }
+
+    .health-score-badge {
+        margin-left: auto;
+        text-align: center;
+        background: #f0fdf4;
+        padding: 1rem;
+        border-radius: 12px;
+        border: 1px solid #bbf7d0;
+    }
+
+    .health-score-badge .score {
+        display: block;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #166534;
+    }
+
+    .health-score-badge .label {
+        font-size: 0.8rem;
+        color: #166534;
+    }
+
+    .view-toggle-container {
+        position: sticky;
+        top: 1rem;
+        z-index: 100;
+        margin-bottom: 2rem;
+    }
+
+    .tanglish-banner {
+        background: #fdf2f8;
+        border: 1px solid #fbcfe8;
+        padding: 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+    }
+
+    .banner-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .icon-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .icon-title h3 {
+        margin: 0;
+        color: #be185d;
+    }
+
+    .audio-controls {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-play {
+        background: #be185d;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-stop {
+        background: #e5e7eb;
+        color: #374151;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .patient-summary-card {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        padding: 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+    }
+
+    .patient-summary-card h3 {
+        margin-top: 0;
+        color: #166534;
+    }
+
+    .doctor-summary-card {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        padding: 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+    }
+
+    .technical-text {
+        font-family: monospace;
+        white-space: pre-wrap;
+        color: #1e3a8a;
+        line-height: 1.6;
+    }
+
+    .diagnosis-box {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #bfdbfe;
+        color: #1e40af;
+    }
+
+    .panel-group {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        margin-bottom: 2rem;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    .panel-header {
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .test-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .test-card {
+        border: 1px solid #e2e8f0;
+        padding: 1rem;
+        border-radius: 12px;
+    }
+
+    .test-card.status-error {
+        border-color: #fecaca;
+        background: #fef2f2;
+    }
+    .test-card.status-warning {
+        border-color: #fed7aa;
+        background: #fff7ed;
+    }
+    .test-card.status-success {
+        border-color: #bbf7d0;
+        background: #f0fdf4;
+    }
+
+    .test-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+    }
+
+    .test-header h4 {
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    .test-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    .test-value .unit {
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 400;
+    }
+
+    .test-range {
+        font-size: 0.8rem;
+        color: #64748b;
+    }
+
+    .diet-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .diet-card h4 {
+        margin-top: 0;
+    }
+    .diet-card {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+    .diet-card.allowed {
+        color: #166534;
+    }
+    .diet-card.avoid {
+        color: #991b1b;
+    }
+
+    /* PRINT STYLES */
+    @media print {
+        @page {
+            size: A4;
+            margin: 15mm;
+        }
+
+        body {
+            background: white !important;
+            color: black !important;
+        }
+
+        .page-navigation,
+        .view-toggle-container,
+        .btn-play,
+        .btn-stop,
+        .audio-controls,
+        nav,
+        footer,
+        .header-actions {
+            display: none !important;
+        }
+
+        .report-page {
+            max-width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .report-header-card {
+            box-shadow: none !important;
+            border: 1px solid #ddd !important;
+            margin-bottom: 2rem !important;
+            page-break-inside: avoid;
+        }
+
+        .view-section {
+            display: block !important; /* Force show all sections? Or just active? */
+        }
+
+        /* If we want to show BOTH patient and doctor views in PDF, un-comment this: */
+        /* #view-patient, #view-doctor { display: block !important; } */
+
+        .panel-group,
+        .patient-summary-card,
+        .doctor-summary-card,
+        .tanglish-banner {
+            break-inside: avoid;
+            page-break-inside: avoid;
+            box-shadow: none !important;
+            border: 1px solid #eee !important;
+        }
+    }
+
+    /* MODAL STYLES */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        backdrop-filter: blur(2px);
+    }
+
+    .modal-overlay.hidden {
+        display: none;
+    }
+
+    .modal-content {
+        background: white;
+        width: 90%;
+        max-width: 400px;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        animation: slideIn 0.2s ease-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .modal-header {
+        background: #f8fafc;
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #1e293b;
+    }
+
+    .close-btn {
+        background: transparent;
+        border: none;
+        font-size: 1.5rem;
+        color: #64748b;
+        cursor: pointer;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+</style>

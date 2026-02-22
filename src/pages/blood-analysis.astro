@@ -1,0 +1,1395 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Blood Report Analysis - Empathetic Engagement">
+    <main class="analysis-page">
+        <header class="page-header">
+            <h1>Blood Report Analysis</h1>
+            <p>
+                Upload your blood test reports for a comprehensive,
+                human-readable breakdown.
+            </p>
+        </header>
+
+        <div class="workspace">
+            <!-- Upload Section -->
+            <section id="upload-section" class="panel upload-panel">
+                <div class="drop-zone" id="drop-zone">
+                    <div class="icon-container">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="48"
+                            height="48"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="lucide lucide-file-text"
+                            ><path
+                                d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"
+                            ></path><polyline points="14 2 14 8 20 8"
+                            ></polyline><line x1="16" x2="8" y1="13" y2="13"
+                            ></line><line x1="16" x2="8" y1="17" y2="17"
+                            ></line><line x1="10" x2="8" y1="9" y2="9"
+                            ></line></svg
+                        >
+                    </div>
+                    <h3>Upload Blood Report</h3>
+                    <p>Drag and drop PDF, JPEG, or PNG files here</p>
+                    <button
+                        class="button secondary"
+                        onclick="document.getElementById('file-input').click()"
+                        >Browse Files</button
+                    >
+                    <div
+                        class="preferences-grid"
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; text-align: left;"
+                    >
+                        <div class="input-group">
+                            <label
+                                for="diet-select"
+                                style="display: block; font-size: 0.9rem; font-weight: 500; color: #4b5563; margin-bottom: 0.5rem;"
+                                >Dietary Preference</label
+                            >
+                            <select
+                                id="diet-select"
+                                style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px; background: #f8fafc;"
+                            >
+                                <option value="Balanced"
+                                    >Balanced (Standard)</option
+                                >
+                                <option value="Vegetarian">Vegetarian</option>
+                                <option value="Vegan">Vegan</option>
+                                <option value="Keto">Keto / Low Carb</option>
+                                <option value="Paleo">Paleo</option>
+                                <option value="Mediterranean"
+                                    >Mediterranean</option
+                                >
+                                <option value="Diabetic"
+                                    >Diabetic Friendly</option
+                                >
+                                <option value="Low FODMAP">Low FODMAP</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label
+                                for="cuisine-select"
+                                style="display: block; font-size: 0.9rem; font-weight: 500; color: #4b5563; margin-bottom: 0.5rem;"
+                                >Cuisine Preference</label
+                            >
+                            <select
+                                id="cuisine-select"
+                                style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px; background: #f8fafc;"
+                            >
+                                <option value="International"
+                                    >International (Mixed)</option
+                                >
+                                <option value="South Indian"
+                                    >South Indian</option
+                                >
+                                <option value="North Indian"
+                                    >North Indian</option
+                                >
+                                <option value="Continental">Continental</option>
+                                <option value="Asian">Asian</option>
+                                <option value="American">American</option>
+                                <option value="Mediterranean"
+                                    >Mediterranean</option
+                                >
+                            </select>
+                        </div>
+                        <div
+                            class="input-group"
+                            style="grid-column: 1 / -1; margin-top: 1rem;"
+                        >
+                            <label
+                                style="display: block; font-size: 0.9rem; font-weight: 500; color: #4b5563; margin-bottom: 0.5rem;"
+                                >Selected Files (Max 10)</label
+                            >
+                            <div
+                                id="file-list"
+                                style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.5rem; min-height: 50px; background: #f8fafc; text-align: left;"
+                            >
+                                <p
+                                    style="color: #94a3b8; font-size: 0.85rem; margin: 0.5rem;"
+                                >
+                                    No files selected...
+                                </p>
+                            </div>
+                        </div>
+
+                        <input
+                            type="file"
+                            id="file-input"
+                            hidden
+                            accept="image/*,.pdf"
+                            multiple
+                        />
+                    </div>
+                </div>
+            </section>
+
+            <!-- Processing State (Hidden by default) -->
+            <div id="processing-state" class="processing-overlay hidden">
+                <div
+                    class="scan-animation"
+                    style="position: relative; width: 100px; height: 100px; margin: 0 auto;"
+                >
+                    <div
+                        class="scan-icon"
+                        style="font-size: 3rem; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"
+                    >
+                        🧬
+                    </div>
+                    <div class="scan-beam"></div>
+                </div>
+                <h3
+                    style="margin-top: 1.5rem; color: #1e3a8a; font-size: 1.25rem;"
+                >
+                    AI Analysis in Progress
+                </h3>
+                <p class="status-text">
+                    Scanning multiple reports & identified anomalies...
+                </p>
+            </div>
+
+            <!-- Results Section (Hidden by default) -->
+            <section id="results-section" class="panel results-panel hidden">
+                <div class="results-header">
+                    <h2>Analysis Summary</h2>
+                    <div class="actions">
+                        <button class="button secondary small" id="reset-btn"
+                            >Analyze Another</button
+                        >
+                        <button
+                            class="button primary small"
+                            onclick="window.print()">Print Report</button
+                        >
+                    </div>
+                </div>
+
+                <div class="report-overview">
+                    <div class="overview-card health-score">
+                        <span class="label">Overall Health Score</span>
+                        <div class="score-circle">
+                            <svg
+                                viewBox="0 0 36 36"
+                                class="circular-chart green"
+                            >
+                                <path
+                                    class="circle-bg"
+                                    d="M18 2.0845
+                                    a 15.9155 15.9155 0 0 1 0 31.831
+                                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                                ></path>
+                                <path
+                                    class="circle"
+                                    stroke-dasharray="85, 100"
+                                    d="M18 2.0845
+                                    a 15.9155 15.9155 0 0 1 0 31.831
+                                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                                ></path>
+                                <text x="18" y="20.35" class="percentage"
+                                    >85%</text
+                                >
+                            </svg>
+                        </div>
+                        <p class="summary-text">
+                            Your results are mostly optimal.
+                        </p>
+                    </div>
+
+                    <div class="overview-card attention-needed">
+                        <span class="label">Needs Attention</span>
+                        <ul class="attention-list">
+                            <li class="warning">Vitamin D (Low)</li>
+                            <li class="warning">
+                                LDL Cholesterol (Borderline)
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="report-content" id="report-content">
+                    <!-- Dynamic Content -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div
+        id="debug-log"
+        style="margin-top:20px; padding:10px; background:#f0f0f0; border:1px solid #ccc; font-family:monospace; font-size:12px; max-height:200px; overflow:auto; display:none;"
+    >
+        <strong>Debug Log:</strong><br />
+    </div>
+
+    <script>
+        const debugLog = document.getElementById("debug-log");
+        function log(msg) {
+            console.log(msg);
+            if (debugLog) {
+                debugLog.style.display = "block";
+                const line = document.createElement("div");
+                line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+                debugLog.appendChild(line);
+            }
+        }
+
+        window.onerror = function (msg, url, lineNo, columnNo, error) {
+            log(`CRITICAL ERROR: ${msg} @ line ${lineNo}`);
+            alert(`CRITICAL ERROR:\n${msg}\nLine: ${lineNo}`);
+            return false;
+        };
+
+        const dropZone = document.getElementById("drop-zone");
+        const fileInput = document.getElementById("file-input");
+        const fileListDisplay = document.getElementById("file-list");
+        const uploadSection = document.getElementById("upload-section");
+        const processingState = document.getElementById("processing-state");
+        const resultsSection = document.getElementById("results-section");
+        const resetBtn = document.getElementById("reset-btn");
+        const reportContent = document.getElementById("report-content");
+
+        let selectedFiles = [];
+
+        if (
+            dropZone &&
+            fileInput &&
+            fileListDisplay &&
+            uploadSection &&
+            processingState &&
+            resultsSection &&
+            resetBtn &&
+            reportContent
+        ) {
+            // Drag & Drop
+            dropZone.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                dropZone.classList.add("drag-active");
+            });
+
+            dropZone.addEventListener("dragleave", () => {
+                dropZone.classList.remove("drag-active");
+            });
+
+            dropZone.addEventListener("drop", (e) => {
+                e.preventDefault();
+                dropZone.classList.remove("drag-active");
+                if (e.dataTransfer && e.dataTransfer.files.length > 0) {
+                    handleFiles(e.dataTransfer.files);
+                }
+            });
+
+            fileInput.addEventListener("change", (e) => {
+                if (
+                    e.target instanceof HTMLInputElement &&
+                    e.target.files &&
+                    e.target.files.length > 0
+                ) {
+                    handleFiles(e.target.files);
+                }
+            });
+
+            // Handle Files Selection (Don't auto-upload yet)
+            function handleFiles(files) {
+                const newFiles = Array.from(files);
+
+                if (selectedFiles.length + newFiles.length > 10) {
+                    alert("You can only upload a maximum of 10 files.");
+                    return;
+                }
+
+                selectedFiles = [...selectedFiles, ...newFiles];
+                renderFileList();
+
+                // Auto-upload if we have files (matches original behavior but for multiple)
+                // Or should we wait for a button? Original code auto-uploaded on change.
+                // Let's add a "Analyze" button instead of auto-uploading on *each* add,
+                // BUT to keep it simple and consistent with previous UX:
+                // Since `uploadAndAnalyze` was called immediately, we should probably
+                // change the UI to have an "Analyze Now" button if we support multiple.
+                // However, dragging 5 files at once works.
+                // Adding one by one might trigger multiple analysis requests?
+                // To be safe: Only trigger uploadAndAnalyze if it's the *first* time or change
+                // Actually, best UX for multiple files is: Select -> Review List -> Click "Analyze".
+
+                // Let's Add an Analyze Button dynamically if not present, OR just auto-upload
+                // if it was a single drop.
+                // Given the requirement "allow at least 10... and combine", batching is key.
+                // I will inject an "Analyze" button into the file list area if files > 0.
+            }
+
+            function renderFileList() {
+                if (selectedFiles.length === 0) {
+                    fileListDisplay.innerHTML =
+                        '<p style="color: #94a3b8; font-size: 0.85rem; margin: 0.5rem;">No files selected...</p>';
+                    return;
+                }
+
+                let html =
+                    '<ul style="list-style: none; padding: 0; margin: 0;">';
+                selectedFiles.forEach((f, i) => {
+                    html += `
+                    <li style="display: flex; justify-content: space-between; align-items: center; padding: 0.25rem 0.5rem; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem;">
+                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;">${f.name}</span>
+                        <button onclick="removeFile(${i})" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 1rem;">&times;</button>
+                    </li>
+                `;
+                });
+                html += "</ul>";
+
+                // Add Analyze Button
+                html += `
+                <button id="analyze-btn" style="width: 100%; margin-top: 0.5rem; background: #2563eb; color: white; border: none; padding: 0.5rem; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                    Analyze ${selectedFiles.length} File${selectedFiles.length > 1 ? "s" : ""}
+                </button>
+            `;
+
+                fileListDisplay.innerHTML = html;
+
+                // Re-attach listener to dynamic button
+                setTimeout(() => {
+                    const btn = document.getElementById("analyze-btn");
+                    if (btn)
+                        btn.onclick = () => uploadAndAnalyze(selectedFiles);
+                }, 0);
+            }
+
+            // Global handler for removing files
+            window.removeFile = (index) => {
+                selectedFiles.splice(index, 1);
+                renderFileList();
+            };
+
+            resetBtn.addEventListener("click", () => {
+                resultsSection.classList.add("hidden");
+                uploadSection.classList.remove("hidden");
+                if (fileInput instanceof HTMLInputElement) {
+                    fileInput.value = "";
+                }
+                reportContent.innerHTML = "";
+                selectedFiles = [];
+                renderFileList();
+            });
+        }
+
+        async function uploadAndAnalyze(files) {
+            if (!files || files.length === 0) return;
+
+            log(`Starting analysis for ${files.length} files...`);
+
+            // Show Loading
+            if (uploadSection) uploadSection.classList.add("hidden");
+            if (processingState) processingState.classList.remove("hidden");
+
+            const formData = new FormData();
+            Array.from(files).forEach((file) => {
+                formData.append("file", file);
+            });
+
+            const dietSelect = document.getElementById("diet-select");
+            const cuisineSelect = document.getElementById("cuisine-select");
+            if (dietSelect instanceof HTMLSelectElement) {
+                formData.append("diet", dietSelect.value);
+            }
+            if (cuisineSelect instanceof HTMLSelectElement) {
+                formData.append("cuisine", cuisineSelect.value);
+            }
+
+            try {
+                log("Sending request to /api/analyze-blood...");
+                const response = await fetch("/api/analyze-blood", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                log(`Response status: ${response.status}`);
+
+                if (!response.ok) {
+                    const errorText = await response.text(); // Get text first to avoid JSON parse error
+                    log(`Response error text: ${errorText}`);
+
+                    let errorData = {};
+                    try {
+                        errorData = JSON.parse(errorText);
+                    } catch (e) {}
+
+                    throw new Error(
+                        errorData.error +
+                            (errorData.details
+                                ? `\nDetails: ${errorData.details}`
+                                : "") ||
+                            "Analysis failed (" + response.status + ")",
+                    );
+                }
+
+                log("Parsing JSON response...");
+                const data = await response.json();
+                log(
+                    "Analysis Success! Data received. Keys: " +
+                        Object.keys(data).join(", "),
+                );
+
+                // Hide Loading, Show Results
+                if (processingState) {
+                    processingState.classList.add("hidden");
+                    log("Hidden processing state");
+                }
+
+                if (resultsSection) {
+                    log("Showing results section...");
+                    resultsSection.classList.remove("hidden");
+                    resultsSection.style.display = "block"; // Force visibility
+                    log(
+                        `Results section style.display is now: ${resultsSection.style.display}`,
+                    );
+                } else {
+                    log("CRITICAL: resultsSection element not found!");
+                }
+
+                try {
+                    log("Calling renderReport...");
+                    renderReport(data);
+                    log("renderReport finished.");
+                } catch (renderError) {
+                    log(`Render Error: ${renderError.message}`);
+                    console.error("Render Error:", renderError);
+                    alert(
+                        "Analysis complete, but failed to render report UI.\n" +
+                            renderError.message,
+                    );
+                    if (reportContent) {
+                        reportContent.innerHTML = `<div style="color:red; padding:20px; text-align:center;">
+                             <h3>UI Render Error</h3>
+                             <p>Please check console.</p>
+                             <pre style="text-align:left; background:#eee; padding:10px; overflow:auto;">${JSON.stringify(data, null, 2)}</pre>
+                         </div>`;
+                    }
+                }
+            } catch (error) {
+                log(`Error: ${error.message}`);
+                console.error("Error:", error);
+                alert("Failed to analyze report.\n\nError: " + error.message);
+                // Reset
+                if (processingState) processingState.classList.add("hidden");
+                if (uploadSection) uploadSection.classList.remove("hidden");
+            }
+        }
+
+        function renderReport(data) {
+            log("Entered renderReport v2"); // v2 to confirm new code
+            if (!reportContent) {
+                log("CRITICAL: reportContent element is missing");
+                return;
+            }
+
+            if (!data) {
+                log("CRITICAL: No data passed");
+                throw new Error("No data received");
+            }
+
+            // Force visibility
+            if (resultsSection) {
+                resultsSection.classList.remove("hidden");
+                resultsSection.style.display = "block";
+            }
+
+            // 1. Health Score
+            try {
+                log("Step 1: Updating health score...");
+                const scoreElement = document.querySelector(
+                    ".health-score .percentage",
+                );
+                const summaryElement = document.querySelector(
+                    ".health-score .summary-text",
+                );
+                if (scoreElement && data.healthScore !== undefined)
+                    scoreElement.textContent = data.healthScore + "%";
+                if (summaryElement && data.summary)
+                    summaryElement.textContent = data.summary;
+                log("Step 1: Done");
+            } catch (e) {
+                log("Step 1 Error: " + e.message);
+            }
+
+            let html = "";
+
+            // 2. View Toggle
+            try {
+                log("Step 2: View Toggle...");
+                html +=
+                    '<div class="view-toggle" style="position: sticky; top: 1rem; z-index: 20; display: flex; gap: 1rem; margin-bottom: 2rem; justify-content: center; background: rgba(238, 242, 255, 0.95); padding: 0.75rem 1rem; border-radius: 50px; width: fit-content; margin-left: auto; margin-right: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.5);">';
+                html +=
+                    '<button class="toggle-btn active" onclick="switchReportView(\'patient\')" id="btn-patient" style="padding: 0.5rem 1.75rem; border-radius: 40px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; font-size: 0.95rem;">🧑‍🦳 Patient View</button>';
+                html +=
+                    '<button class="toggle-btn" onclick="switchReportView(\'doctor\')" id="btn-doctor" style="padding: 0.5rem 1.75rem; border-radius: 40px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; background: transparent; color: #6b7280; font-size: 0.95rem;">👨‍⚕️ Doctor View</button>';
+                html += "</div>";
+                log("Step 2: Done");
+            } catch (e) {
+                log("Step 2 Error: " + e.message);
+            }
+
+            // 3. Patient View
+            try {
+                log("Step 3: Patient View...");
+                html += '<div id="view-patient" class="view-section">';
+
+                if (data.summary_tamil) {
+                    const safeSummary = data.summary_tamil.replace(/'/g, "\\'");
+                    html +=
+                        '<div class="tanglish-banner" style="background: #fdf2f8; border: 1px solid #fbcfe8; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">';
+                    html +=
+                        '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">';
+                    html +=
+                        '<div style="display: flex; align-items: center; gap: 1rem;"><span style="font-size: 1.5rem;">🗣️</span><h3 style="margin: 0; color: #be185d; font-size: 1.25rem;">Tanglish Summary</h3></div>';
+                    html += '<div style="display: flex; align-items: center;">';
+                    html +=
+                        "<button onclick=\"speakSummary('" +
+                        safeSummary +
+                        '\')" style="background: #be185d; color: white; border: none; padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; font-size: 0.9rem; margin-right: 0.5rem;"><span>🔊</span> Play</button>';
+                    html +=
+                        '<button onclick="stopAudio()" style="background: #e5e7eb; color: #374151; border: none; padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; font-size: 0.9rem;"><span>Tw</span> Stop</button>';
+                    html += "</div></div>";
+                    html +=
+                        '<p style="margin: 0; color: #374151; font-size: 1.1rem; line-height: 1.6;">' +
+                        data.summary_tamil +
+                        "</p></div>";
+                }
+
+                if (data.patient_summary) {
+                    html +=
+                        '<div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">';
+                    html +=
+                        '<h3 style="margin: 0 0 0.5rem 0; color: #166534;">Patient Summary</h3>';
+                    html +=
+                        '<p style="margin: 0; color: #374151;">' +
+                        data.patient_summary +
+                        "</p></div>";
+                }
+                html += "</div>";
+                log("Step 3: Done");
+            } catch (e) {
+                log("Step 3 Error: " + e.message);
+            }
+
+            // 4. Doctor View
+            try {
+                log("Step 4: Doctor View...");
+                html +=
+                    '<div id="view-doctor" class="view-section" style="display: none;">';
+                if (data.doctor_summary) {
+                    html +=
+                        '<div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">';
+                    html +=
+                        '<div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;"><span style="font-size: 1.5rem;">🩺</span><h3 style="margin: 0; color: #1e40af;">Clinical Assessment</h3></div>';
+                    html += data.doctor_summary + "</p>";
+
+                    if (
+                        data.clinical_correlations &&
+                        Array.isArray(data.clinical_correlations)
+                    ) {
+                        html +=
+                            '<div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #bfdbfe;">';
+                        html +=
+                            '<h4 style="margin: 0 0 0.75rem 0; color: #1e40af; font-size: 1.1rem;">🔗 Clinical Correlations</h4>';
+                        html +=
+                            '<ul style="margin: 0; padding-left: 1.5rem; color: #1e3a8a;">';
+                        data.clinical_correlations.forEach((item) => {
+                            html += `<li style="margin-bottom: 0.5rem;">${item}</li>`;
+                        });
+                        html += "</ul></div>";
+                    }
+
+                    html += "</div>";
+                } else {
+                    html +=
+                        '<div style="padding: 1rem; color: #6b7280; font-style: italic;">No specific clinical summary.</div>';
+                }
+                html += "</div>";
+                log("Step 4: Done");
+            } catch (e) {
+                log("Step 4 Error: " + e.message);
+            }
+
+            // 5. Panels
+            try {
+                log("Step 5: Panels...");
+                if (data.panels && Array.isArray(data.panels)) {
+                    data.panels.forEach((panel, pIdx) => {
+                        log(`Panel ${pIdx}: ${panel.title}`);
+                        html += '<div class="panel-group">';
+                        html += `<div class="panel-header-info"><h3>${panel.title || "Unknown"}</h3><p>${panel.description || ""}</p></div>`;
+                        html += '<div class="test-grid">';
+                        if (panel.tests && Array.isArray(panel.tests)) {
+                            panel.tests.forEach((test) => {
+                                const s =
+                                    test.flag === "error"
+                                        ? "status-error"
+                                        : test.flag === "warning"
+                                          ? "status-warning"
+                                          : "status-success";
+                                const b =
+                                    test.flag === "error"
+                                        ? "badge-error"
+                                        : test.flag === "warning"
+                                          ? "badge-warning"
+                                          : "badge-success";
+                                html += `<div class="test-card ${s}">`;
+                                html += `<div class="test-header"><h4>${test.name}</h4><span class="status-badge ${b}">${test.status}</span></div>`;
+                                html += `<div class="test-value"><span class="value">${test.value}</span><span class="unit">${test.unit || ""}</span></div>`;
+                                html += `<div class="reference-range"><span>Ref: ${test.range || "N/A"}</span></div>`;
+                                html += `<div class="explanation"><p><strong>What it is:</strong> ${test.explanation || ""}</p><p class="insight"><strong>💡 Health Check:</strong> ${test.insight || ""}</p></div>`;
+                                html += "</div>";
+                            });
+                        }
+                        html += "</div></div>";
+                    });
+                }
+                log("Step 5: Done");
+            } catch (e) {
+                log("Step 5 Error: " + e.message);
+            }
+
+            // 6. Suggestions
+            try {
+                log("Step 6: Suggestions...");
+                if (data.suggestions && Array.isArray(data.suggestions)) {
+                    html +=
+                        '<div class="panel-group suggestions-section"><div class="panel-header-info"><h3>🌱 Quality of Life</h3><p>Recommendations.</p></div><div class="suggestions-grid">';
+                    data.suggestions.forEach((s) => {
+                        html += `<div class="suggestion-card"><div class="icon">${s.icon || "✨"}</div><div class="content"><h4>${s.title}</h4><p>${s.description}</p></div></div>`;
+                    });
+                    html += "</div></div>";
+                }
+                log("Step 6: Done");
+            } catch (e) {
+                log("Step 6 Error: " + e.message);
+            }
+
+            // 7. Diet
+            try {
+                log("Step 7: Diet...");
+                if (data.dietary_plan) {
+                    const d = data.dietary_plan;
+                    html += '<div class="panel-group diet-section">';
+                    html += `<div class="panel-header-info"><h3>🥗 Diet</h3><p>${d.description || ""}</p></div>`;
+
+                    if (d.macronutrients) {
+                        html +=
+                            '<div class="macro-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:2rem; background:#f8fafc; padding:1.5rem; border-radius:12px;">';
+                        html +=
+                            '<div style="text-align:center;"><span style="display:block; font-size:1.8rem; font-weight:bold; color:#ef4444;">' +
+                            (d.macronutrients.protein || "-") +
+                            "</span><span>Protein</span></div>";
+                        html +=
+                            '<div style="text-align:center;"><span style="display:block; font-size:1.8rem; font-weight:bold; color:#eab308;">' +
+                            (d.macronutrients.carbs || "-") +
+                            "</span><span>Carbs</span></div>";
+                        html +=
+                            '<div style="text-align:center;"><span style="display:block; font-size:1.8rem; font-weight:bold; color:#22c55e;">' +
+                            (d.macronutrients.fats || "-") +
+                            "</span><span>Fats</span></div>";
+                        html += "</div>";
+                    }
+
+                    html += '<div class="diet-plan-container">';
+                    html +=
+                        '<div class="diet-card recommended"><h4>✅ Eat</h4><ul>' +
+                        (d.allowed
+                            ? d.allowed.map((f) => `<li>${f}</li>`).join("")
+                            : "") +
+                        "</ul></div>";
+                    html +=
+                        '<div class="diet-card avoided"><h4>❌ Avoid</h4><ul>' +
+                        (d.avoid
+                            ? d.avoid.map((f) => `<li>${f}</li>`).join("")
+                            : "") +
+                        "</ul></div>";
+                    html += `<div class="diet-card hydration"><h4>💧 Hydration</h4><p>${d.hydration || ""}</p></div>`;
+                    html += "</div>";
+
+                    if (d.meal_plan) {
+                        html +=
+                            '<div class="meal-plan-section" style="margin-top:2rem;"><h4>Daily Meal Plan</h4><div class="meal-grid" style="display:grid; gap:1.5rem;">';
+                        html +=
+                            '<div class="meal-card" style="background:#fff7ed; padding:1rem;"><strong>Breakfast</strong><ul>' +
+                            (d.meal_plan.breakfast
+                                ?.map((m) => "<li>" + m + "</li>")
+                                .join("") || "") +
+                            "</ul></div>";
+                        html +=
+                            '<div class="meal-card" style="background:#f0f9ff; padding:1rem;"><strong>Lunch</strong><ul>' +
+                            (d.meal_plan.lunch
+                                ?.map((m) => "<li>" + m + "</li>")
+                                .join("") || "") +
+                            "</ul></div>";
+                        html +=
+                            '<div class="meal-card" style="background:#fdf2f8; padding:1rem;"><strong>Dinner</strong><ul>' +
+                            (d.meal_plan.dinner
+                                ?.map((m) => "<li>" + m + "</li>")
+                                .join("") || "") +
+                            "</ul></div>";
+                        html += "</div></div>";
+                    }
+                    html += "</div>";
+                }
+                log("Step 7: Done");
+            } catch (e) {
+                log("Step 7 Error: " + e.message);
+            }
+
+            log("Final Step: Setting innerHTML (Length: " + html.length + ")");
+            reportContent.innerHTML = html;
+            log("Render Complete!");
+        }
+
+        // Make it available globally
+        (window as any).speakSummary = function (text) {
+            console.log("Speaking summary:", text); // DEBUG
+
+            if ("speechSynthesis" in window) {
+                // Cancel any ongoing speech
+                window.speechSynthesis.cancel();
+
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9; // Slightly slower for clarity
+                utterance.pitch = 1;
+
+                // Wait for voices to be loaded
+                let voices = window.speechSynthesis.getVoices();
+                const setVoice = () => {
+                    voices = window.speechSynthesis.getVoices();
+                    const tamilVoice = voices.find((voice) =>
+                        voice.lang.includes("ta"),
+                    );
+                    if (tamilVoice) {
+                        console.log("Using Tamil voice:", tamilVoice.name); // DEBUG
+                        utterance.voice = tamilVoice;
+                    } else {
+                        console.log("Tamil voice not found, using default.");
+                    }
+                    window.speechSynthesis.speak(utterance);
+                };
+
+                if (voices.length === 0) {
+                    window.speechSynthesis.onvoiceschanged = setVoice;
+                } else {
+                    setVoice();
+                }
+            } else {
+                alert("Sorry, your browser does not support audio playback.");
+            }
+        };
+
+        (window as any).stopAudio = function () {
+            if ("speechSynthesis" in window) {
+                window.speechSynthesis.cancel();
+            }
+        };
+
+        (window as any).switchReportView = function (view) {
+            // Toggle sections
+            const patientSection = document.getElementById("view-patient");
+            const doctorSection = document.getElementById("view-doctor");
+
+            if (view === "patient") {
+                if (patientSection) patientSection.style.display = "block";
+                if (doctorSection) doctorSection.style.display = "none";
+            } else {
+                if (patientSection) patientSection.style.display = "none";
+                if (doctorSection) doctorSection.style.display = "block";
+            }
+
+            // Toggle buttons
+            const patientBtn = document.getElementById("btn-patient");
+            const doctorBtn = document.getElementById("btn-doctor");
+
+            if (patientBtn && doctorBtn) {
+                if (view === "patient") {
+                    patientBtn.style.background = "#ffffff";
+                    patientBtn.style.color = "#000000";
+                    patientBtn.classList.add("active");
+
+                    doctorBtn.style.background = "transparent";
+                    doctorBtn.style.color = "#6b7280";
+                    doctorBtn.classList.remove("active");
+                } else {
+                    doctorBtn.style.background = "#ffffff";
+                    doctorBtn.style.color = "#000000";
+                    doctorBtn.classList.add("active");
+
+                    patientBtn.style.background = "transparent";
+                    patientBtn.style.color = "#6b7280";
+                    patientBtn.classList.remove("active");
+                }
+            }
+        };
+    </script>
+
+    <style>
+        .analysis-page {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .workspace {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        /* Upload Section */
+        .drop-zone {
+            border: 2px dashed #e0e0e0;
+            border-radius: 12px;
+            padding: 4rem 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.drag-active {
+            border-color: #2196f3;
+            background: rgba(33, 150, 243, 0.05);
+        }
+
+        .icon-container {
+            color: #90caf9;
+            margin-bottom: 1rem;
+        }
+
+        /* Results */
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 1rem;
+        }
+
+        /* Scanning Animation */
+        .scan-animation {
+            position: relative;
+            background: rgba(33, 150, 243, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid #e0efff;
+            box-shadow: 0 0 15px rgba(33, 150, 243, 0.1);
+        }
+
+        .scan-beam {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                #2196f3,
+                transparent
+            );
+            box-shadow: 0 0 10px #2196f3;
+            animation: scan 2s linear infinite;
+            z-index: 2;
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0;
+            }
+            50% {
+                top: 100%;
+            }
+            100% {
+                top: 0;
+            }
+        }
+
+        .scan-icon {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.8;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.8;
+            }
+        }
+
+        .report-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .overview-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .score-circle {
+            width: 120px;
+            margin: 1rem 0;
+        }
+
+        .circular-chart {
+            display: block;
+            margin: 10px auto;
+            max-width: 80%;
+            max-height: 250px;
+        }
+        .circle-bg {
+            fill: none;
+            stroke: #eee;
+            stroke-width: 3.8;
+        }
+        .circle {
+            fill: none;
+            stroke-width: 2.8;
+            stroke-linecap: round;
+            animation: progress 1s ease-out forwards;
+        }
+        .percentage {
+            fill: #666;
+            font-family: sans-serif;
+            font-weight: bold;
+            font-size: 0.5em;
+            text-anchor: middle;
+        }
+        .green .circle {
+            stroke: #4caf50;
+        }
+
+        .attention-list {
+            list-style: none;
+            padding: 0;
+            width: 100%;
+            text-align: left;
+        }
+
+        .attention-list li {
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 6px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .attention-list li::before {
+            content: "!";
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: currentColor;
+            color: white;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+
+        .attention-list li.warning {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .panel-group {
+            margin-bottom: 3rem;
+        }
+
+        .panel-header-info {
+            margin-bottom: 1.5rem;
+        }
+
+        .panel-header-info h3 {
+            font-size: 1.5rem;
+            color: #1565c0;
+            margin-bottom: 0.5rem;
+        }
+
+        .panel-header-info p {
+            color: #666;
+            max-width: 600px;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .test-card {
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 1.5rem;
+            background: white;
+            transition: transform 0.2s;
+        }
+
+        .test-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .test-card.status-error {
+            border-left: 4px solid #ef5350;
+        }
+        .test-card.status-warning {
+            border-left: 4px solid #ffa726;
+        }
+        .test-card.status-success {
+            border-left: 4px solid #66bb6a;
+        }
+
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .test-header h4 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .badge-warning {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+        .badge-error {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .test-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+
+        .test-value .unit {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            font-weight: 400;
+            margin-left: 4px;
+        }
+
+        .reference-range {
+            font-size: 0.85rem;
+            color: #95a5a6;
+            margin-bottom: 1rem;
+        }
+
+        .explanation {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .insight {
+            margin-top: 0.5rem;
+            color: #1565c0;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Buttons */
+        .button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .button.primary {
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            color: white;
+        }
+
+        .button.secondary {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .button.small {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        /* Suggestions Section */
+        .suggestions-section h3 {
+            color: #2e7d32;
+        }
+
+        .suggestions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .suggestion-card {
+            background: #f0fdf4;
+            border: 1px solid #dcfce7;
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            transition: transform 0.2s;
+        }
+
+        .suggestion-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.1);
+        }
+
+        .suggestion-card .icon {
+            font-size: 2rem;
+            background: white;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .suggestion-card .content h4 {
+            color: #1b5e20;
+            margin: 0 0 0.5rem 0;
+            font-size: 1.1rem;
+        }
+
+        .suggestion-card .content p {
+            margin: 0;
+            color: #334155;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Loader */
+        .loader {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        .droplet {
+            width: 40px;
+            height: 40px;
+            border-radius: 50% 50% 50% 0;
+            background: #ef5350;
+            transform: rotate(-45deg);
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        /* Dietary Section Styles */
+        .diet-section h3 {
+            color: #d81b60; /* Pinkish/Red for diet header */
+        }
+
+        .diet-plan-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .diet-card {
+            padding: 1.5rem;
+            border-radius: 12px;
+            background: #fff;
+            border: 1px solid #eee;
+        }
+
+        .diet-card h4 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .diet-card ul {
+            padding-left: 1.2rem;
+            margin: 0;
+        }
+
+        .diet-card li {
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+
+        .diet-card.recommended {
+            background: #f1f8e9;
+            border-color: #c5e1a5;
+        }
+        .diet-card.recommended h4 {
+            color: #33691e;
+        }
+
+        .diet-card.avoided {
+            background: #ffebee;
+            border-color: #ffcdd2;
+        }
+        .diet-card.avoided h4 {
+            color: #b71c1c;
+        }
+
+        .diet-card.hydration {
+            background: #e1f5fe;
+            border-color: #b3e5fc;
+        }
+        .diet-card.hydration h4 {
+            color: #01579b;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1) rotate(-45deg);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.2) rotate(-45deg);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1) rotate(-45deg);
+                opacity: 1;
+            }
+        }
+
+        /* PRINT STYLES */
+        @media print {
+            @page {
+                size: A4;
+                margin: 15mm;
+            }
+
+            body {
+                background: white !important;
+                color: black !important;
+            }
+
+            /* Hide UI elements */
+            .page-header,
+            .upload-section,
+            .drop-zone,
+            .actions,
+            #reset-btn,
+            .view-toggle,
+            nav,
+            footer,
+            .header-actions,
+            .icon-container,
+            .scan-animation,
+            button {
+                display: none !important;
+            }
+
+            .analysis-page {
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+                min-height: auto !important;
+            }
+
+            .panel {
+                box-shadow: none !important;
+                padding: 0 !important;
+                border: none !important;
+            }
+
+            .results-header {
+                border-bottom: none !important;
+                margin-bottom: 1rem !important;
+            }
+
+            /* Force panels to break nicely */
+            .panel-group,
+            .overview-card,
+            .tanglish-banner,
+            .diet-section,
+            .suggestions-section {
+                break-inside: avoid;
+                page-break-inside: avoid;
+                border: 1px solid #eee !important;
+                margin-bottom: 1.5rem !important;
+                box-shadow: none !important;
+            }
+
+            /* Ensure text colors print correctly */
+            .page-header h1 {
+                -webkit-text-fill-color: #1a237e !important;
+            }
+
+            .view-section {
+                display: block !important;
+            }
+        }
+    </style>
+</Layout>

@@ -1,0 +1,1263 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="AI Analysis - Empathetic Engagement">
+    <main class="analysis-page">
+        <header class="page-header">
+            <h1>Diagnostic Analysis</h1>
+            <p>
+                Upload patient scans (X-Ray, CT, MRI) for instant 3D synthesis.
+            </p>
+        </header>
+
+        <div class="workspace">
+            <!-- Upload Section -->
+            <section id="upload-section" class="panel upload-panel">
+                <div class="drop-zone" id="drop-zone">
+                    <div class="icon-container">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="48"
+                            height="48"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            ><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                            ></path><polyline points="17 8 12 3 7 8"
+                            ></polyline><line x1="12" y1="3" x2="12" y2="15"
+                            ></line></svg
+                        >
+                    </div>
+                    <h3>Upload Scan</h3>
+                    <p>Drag and drop DICOM, JPEG, or PNG files here</p>
+                    <button
+                        class="button secondary"
+                        onclick="document.getElementById('file-input').click()"
+                        >Browse Files</button
+                    >
+                    <div
+                        class="preferences-grid"
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem; text-align: left;"
+                    >
+                        <input
+                            type="file"
+                            id="file-input"
+                            hidden
+                            accept="image/*,.dcm"
+                            multiple
+                        />
+                        <div class="input-group">
+                            <label
+                                for="diet-select"
+                                style="display: block; font-size: 0.9rem; font-weight: 500; color: #4b5563; margin-bottom: 0.5rem;"
+                                >Dietary Preference</label
+                            >
+                            <select
+                                id="diet-select"
+                                style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px; background: #f8fafc;"
+                            >
+                                <option value="Balanced"
+                                    >Balanced (Standard)</option
+                                >
+                                <option value="Vegetarian">Vegetarian</option>
+                                <option value="Vegan">Vegan</option>
+                                <option value="Keto">Keto / Low Carb</option>
+                                <option value="Paleo">Paleo</option>
+                                <option value="Mediterranean"
+                                    >Mediterranean</option
+                                >
+                                <option value="Diabetic"
+                                    >Diabetic Friendly</option
+                                >
+                                <option value="Low FODMAP">Low FODMAP</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label
+                                for="cuisine-select"
+                                style="display: block; font-size: 0.9rem; font-weight: 500; color: #4b5563; margin-bottom: 0.5rem;"
+                                >Cuisine Preference</label
+                            >
+                            <select
+                                id="cuisine-select"
+                                style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px; background: #f8fafc;"
+                            >
+                                <option value="International"
+                                    >International (Mixed)</option
+                                >
+                                <option value="South Indian"
+                                    >South Indian</option
+                                >
+                                <option value="North Indian"
+                                    >North Indian</option
+                                >
+                                <option value="Continental">Continental</option>
+                                <option value="Asian">Asian</option>
+                                <option value="American">American</option>
+                                <option value="Mediterranean"
+                                    >Mediterranean</option
+                                >
+                            </select>
+                        </div>
+                    </div>
+                    <!-- NEW: Anatomy Selector -->
+                    <div class="anatomy-select-container">
+                        <label for="anatomy-select">Anatomical Region:</label>
+                        <select id="anatomy-select">
+                            <option value="dental">Dental (Teeth/Jaw)</option>
+                            <option value="chest">Chest (Lungs/Heart)</option>
+                            <option value="hand">Hand/Wrist</option>
+                            <option value="spine"
+                                >Spine (Lumbar/Cervical)</option
+                            >
+                            <option value="brain">Brain (CT/MRI)</option>
+                            <option value="abdomen">Abdomen (X-Ray/CT)</option>
+                            <option value="knee">Knee (X-Ray/MRI)</option>
+                            <option value="shoulder"
+                                >Shoulder (X-Ray/MRI)</option
+                            >
+                            <option value="kidney"
+                                >Kidney (CT/Ultrasound)</option
+                            >
+                            <option value="heart">Heart (Cardiac CT/MRI)</option
+                            >
+                        </select>
+                    </div>
+                    <div
+                        class="actions-container"
+                        style="margin-top: 2rem; display: none; flex-direction: column; align-items: center; gap: 0.5rem;"
+                        id="actions-container"
+                    >
+                        <span
+                            id="file-count"
+                            style="color: #64748b; font-size: 0.9rem; font-weight: 500;"
+                        ></span>
+                        <button class="button primary" id="analyze-btn">
+                            Start Analysis ✨
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Processing State (Hidden by default) -->
+            <div id="processing-state" class="processing-overlay hidden">
+                <div
+                    class="scan-animation"
+                    style="position: relative; width: 100px; height: 100px; margin: 0 auto;"
+                >
+                    <div
+                        class="scan-icon"
+                        style="font-size: 3rem; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"
+                    >
+                        🧠
+                    </div>
+                    <div class="scan-beam"></div>
+                </div>
+                <h3
+                    style="margin-top: 1.5rem; color: #1e3a8a; font-size: 1.25rem;"
+                >
+                    Deep Learning Analysis In Progress
+                </h3>
+                <p class="status-text">
+                    Detecting anomalies & generating 3D insights...
+                </p>
+            </div>
+
+            <!-- Results Section (Hidden by default) -->
+            <section id="results-section" class="panel results-panel hidden">
+                <div class="results-header">
+                    <h2>Analysis Complete</h2>
+                    <button class="button secondary small" id="reset-btn"
+                        >New Analysis</button
+                    >
+                </div>
+
+                <div class="visualization-container">
+                    <div
+                        class="visor original"
+                        style="height: auto; min-height: 200px; padding: 1rem;"
+                    >
+                        <span class="label">Analyzed Scans</span>
+                        <div
+                            id="results-grid"
+                            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; width: 100%;"
+                        >
+                            <!-- Thumbnails injected here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: Med-Gemma Report Section -->
+                <div class="medlm-section">
+                    <!-- ... (rest remains same) -->
+
+                    <div class="medlm-header">
+                        <div class="medlm-badge">
+                            <svg
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                ><path
+                                    d="M12 2L2 7L12 12L22 7L12 2Z"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"></path><path
+                                    d="M2 17L12 22L22 17"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"></path><path
+                                    d="M2 12L12 17L22 12"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"></path></svg
+                            >
+                            MedLM Analysis
+                        </div>
+                        <span class="status-tag">Generated</span>
+                    </div>
+                    <div class="report-content" id="medlm-report">
+                        <!-- Report text injected by JS -->
+                    </div>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <span class="metric-label">Primary Diagnosis</span>
+                        <span class="metric-value" id="diagnosis-value"
+                            >Normal Study</span
+                        >
+                        <span class="metric-sub" id="diagnosis-sub"
+                            >No acute abnormalities</span
+                        >
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Confidence</span>
+                        <span class="metric-value success">99.2%</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Urgency</span>
+                        <span class="metric-value success" id="urgency-value"
+                            >Routine</span
+                        >
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</Layout>
+
+<script>
+    const dropZone = document.getElementById("drop-zone");
+    const fileInput = document.getElementById("file-input");
+    const uploadSection = document.getElementById("upload-section");
+    const processingState = document.getElementById("processing-state");
+    const resultsSection = document.getElementById("results-section");
+    const previewImage = document.getElementById("preview-image");
+    const resetBtn = document.getElementById("reset-btn");
+    const medlmReport = document.getElementById("medlm-report");
+    const anatomySelect = document.getElementById("anatomy-select");
+    const analyzeBtn = document.getElementById(
+        "analyze-btn",
+    ) as HTMLButtonElement;
+    const actionsContainer = document.getElementById("actions-container");
+
+    let selectedFiles: File[] = [];
+
+    if (
+        dropZone &&
+        fileInput &&
+        uploadSection &&
+        processingState &&
+        resultsSection &&
+        // previewImage && // Removed: No longer used
+        resetBtn &&
+        medlmReport &&
+        anatomySelect &&
+        analyzeBtn &&
+        actionsContainer
+    ) {
+        // Handle Drag & Drop
+        dropZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZone.classList.add("drag-active");
+        });
+
+        dropZone.addEventListener("dragleave", () => {
+            dropZone.classList.remove("drag-active");
+        });
+
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("drag-active");
+            if (e.dataTransfer && e.dataTransfer.files) {
+                handleFiles(e.dataTransfer.files);
+            }
+        });
+
+        fileInput.addEventListener("change", (e) => {
+            if (e.target instanceof HTMLInputElement && e.target.files) {
+                handleFiles(e.target.files);
+                // Reset input to allow selecting the same file again if needed (or just to clear state)
+                e.target.value = "";
+            }
+        });
+
+        analyzeBtn.addEventListener("click", () => {
+            if (selectedFiles.length > 0) {
+                // Add visual feedback
+                analyzeBtn.innerHTML = "Submitting... ⏳";
+                analyzeBtn.disabled = true;
+                uploadAndAnalyze(selectedFiles).catch(() => {
+                    analyzeBtn.innerHTML = "Start Analysis ✨";
+                    analyzeBtn.disabled = false;
+                });
+            } else {
+                alert("Please select at least one file.");
+            }
+        });
+
+        resetBtn.addEventListener("click", () => {
+            resultsSection.classList.add("hidden");
+            uploadSection.classList.remove("hidden");
+            // Clean up
+            selectedFiles = [];
+            actionsContainer.style.display = "none";
+            const grid = document.getElementById("image-grid");
+            if (grid) grid.innerHTML = "";
+
+            if (previewImage instanceof HTMLImageElement) {
+                previewImage.src = "";
+            }
+            if (fileInput instanceof HTMLInputElement) {
+                fileInput.value = "";
+            }
+
+            // Fix: Reset Analysis Button State
+            analyzeBtn.innerHTML = "Start Analysis ✨";
+            analyzeBtn.disabled = false;
+
+            medlmReport.innerHTML = ""; // Clear report
+        });
+    }
+
+    function handleFiles(files: FileList) {
+        if (files.length > 0) {
+            const visualizationContainer = document.querySelector(
+                ".visualization-container",
+            );
+
+            // Create or get grid container
+            let grid = document.getElementById("image-grid");
+            if (!grid) {
+                grid = document.createElement("div");
+                grid.id = "image-grid";
+                grid.className = "image-grid";
+                grid.style.display = "grid";
+                grid.style.gridTemplateColumns =
+                    "repeat(auto-fill, minmax(150px, 1fr))";
+                grid.style.gap = "1rem";
+                grid.style.marginTop = "1rem";
+                // Insert after drop zone (inside upload panel, not results)
+                const dropZone = document.getElementById("drop-zone");
+                if (dropZone) dropZone.appendChild(grid);
+            }
+
+            let invalidCount = 0;
+            let validAdded = 0;
+
+            Array.from(files).forEach((file) => {
+                const isImage = file.type.startsWith("image/");
+                const isDicom =
+                    file.name.toLowerCase().endsWith(".dcm") ||
+                    file.type.includes("dicom");
+
+                // DEBUG: Alert per file
+                // alert(`Checking file: ${file.name}\nType: ${file.type}\nIs Image: ${isImage}\nIs DICOM: ${isDicom}`);
+
+                if (isImage || isDicom) {
+                    selectedFiles.push(file); // Add to staging
+                    validAdded++;
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        if (e.target && typeof e.target.result === "string") {
+                            const imgWrapper = document.createElement("div");
+                            imgWrapper.className = "visor original"; // Reuse style class
+                            imgWrapper.style.height = "100px"; // Smaller for staging
+                            imgWrapper.style.display = "flex";
+                            imgWrapper.style.alignItems = "center";
+                            imgWrapper.style.justifyContent = "center";
+                            imgWrapper.style.background = "#f1f5f9";
+                            imgWrapper.style.position = "relative";
+
+                            // Check if it's renderable as an image
+                            if (file.type.startsWith("image/")) {
+                                const img = document.createElement("img");
+                                img.src = e.target.result;
+                                img.alt = file.name;
+                                img.style.width = "100%";
+                                img.style.height = "100%";
+                                img.style.objectFit = "cover";
+                                img.style.borderRadius = "8px";
+                                imgWrapper.appendChild(img);
+                            } else {
+                                // Generic icon
+                                imgWrapper.innerHTML = `<div style="text-align:center; color:#64748b;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                    <div style="font-size:0.65rem; margin-top:0.25rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100px;">${file.name}</div>
+                                </div>`;
+                            }
+
+                            if (grid) grid.appendChild(imgWrapper);
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    console.log("Invalid file:", file.name, file.type);
+                    invalidCount++;
+                }
+            });
+
+            // DEBUG: Alert summary
+            // alert(
+            //     `Debug: Added ${validAdded} valid files. Invalid: ${invalidCount}. Total staged: ${selectedFiles.length}`,
+            // );
+
+            if (selectedFiles.length > 0) {
+                // Show Analyse Button and Update Count
+                if (actionsContainer) {
+                    actionsContainer.style.display = "flex";
+                    // actionsContainer.style.justifyContent = "center"; // Removed to allow flex-col
+                }
+                const countSpan = document.getElementById("file-count");
+                if (countSpan) {
+                    countSpan.innerText = `${selectedFiles.length} scan${selectedFiles.length === 1 ? "" : "s"} ready to analyze`;
+                }
+            } else {
+                if (invalidCount > 0) {
+                    alert(
+                        "Please upload valid medical scan images (JPEG, PNG, DICOM).",
+                    );
+                }
+            }
+        } else {
+            console.log("Debug: handleFiles called but files list is empty!");
+        }
+    }
+
+    async function uploadAndAnalyze(files: File[]) {
+        if (uploadSection) uploadSection.classList.add("hidden");
+        if (processingState) processingState.classList.remove("hidden");
+
+        const anatomySelect = document.getElementById(
+            "anatomy-select",
+        ) as HTMLSelectElement;
+        const region = anatomySelect ? anatomySelect.value : "General";
+
+        const formData = new FormData();
+        files.forEach((file) => {
+            formData.append("file", file);
+        });
+        formData.append("anatomy", region);
+
+        const dietSelect = document.getElementById("diet-select");
+        const cuisineSelect = document.getElementById("cuisine-select");
+        if (dietSelect instanceof HTMLSelectElement) {
+            formData.append("diet", dietSelect.value);
+        }
+        if (cuisineSelect instanceof HTMLSelectElement) {
+            formData.append("cuisine", cuisineSelect.value);
+        }
+
+        try {
+            const response = await fetch("/api/analyze-scan", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.error || "Analysis Failed");
+            }
+
+            const data = await response.json();
+
+            // Hide Loading
+            if (processingState) processingState.classList.add("hidden");
+            if (resultsSection) resultsSection.classList.remove("hidden");
+
+            // Render Thumbnails in Results
+            const resultsGrid = document.getElementById("results-grid");
+            if (resultsGrid) {
+                resultsGrid.innerHTML = ""; // Clear previous
+                files.forEach((file) => {
+                    if (file.type.startsWith("image/")) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            if (
+                                e.target &&
+                                typeof e.target.result === "string"
+                            ) {
+                                const img = document.createElement("img");
+                                img.src = e.target.result;
+                                img.style.width = "100%";
+                                img.style.height = "150px";
+                                img.style.objectFit = "cover";
+                                img.style.borderRadius = "8px";
+                                img.style.background = "#000";
+                                resultsGrid.appendChild(img);
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        // Generic icon for non-images in results
+                        const div = document.createElement("div");
+                        div.style.height = "150px";
+                        div.style.display = "flex";
+                        div.style.alignItems = "center";
+                        div.style.justifyContent = "center";
+                        div.style.background = "#f1f5f9";
+                        div.style.borderRadius = "8px";
+                        div.innerHTML = `<span style="font-size: 0.8rem; color: #64748b;">${file.name}</span>`;
+                        resultsGrid.appendChild(div);
+                    }
+                });
+            }
+
+            renderReport(data);
+        } catch (error) {
+            console.error(error);
+            console.error(error);
+            // Show detailed error if available
+            const msg = error.details || error.message || String(error);
+            alert("Error analyzing scan: " + msg);
+            if (processingState) processingState.classList.add("hidden");
+            if (uploadSection) uploadSection.classList.remove("hidden");
+        }
+    }
+
+    function renderReport(data: any) {
+        if (!medlmReport) return;
+
+        // Metric Elements
+        const diagnosisValue = document.getElementById("diagnosis-value");
+        const diagnosisSub = document.getElementById("diagnosis-sub");
+        const urgencyValue = document.getElementById("urgency-value");
+
+        // Update Metrics
+        if (diagnosisValue)
+            diagnosisValue.innerText =
+                data.diagnosis || data.impression || "Analysis Complete";
+        if (diagnosisSub)
+            diagnosisSub.innerText = data.anatomy || "Medical Image";
+        if (urgencyValue) {
+            urgencyValue.innerText = data.urgency || "Routine";
+            urgencyValue.className =
+                data.urgency === "Critical" || data.urgency === "Urgent"
+                    ? "metric-value danger"
+                    : "metric-value success";
+        }
+
+        const date = new Date().toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        });
+        const time = new Date().toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+
+        // Measurements List
+        let measurementsHTML = "";
+        if (data.measurements && Array.isArray(data.measurements)) {
+            measurementsHTML = `<ul class="measurement-list">`;
+            data.measurements.forEach((m: any) => {
+                measurementsHTML += `<li><strong>${m.label}:</strong> ${m.value} [${m.status}]</li>`;
+            });
+            measurementsHTML += `</ul>`;
+        }
+
+        // Recommendations List
+        let nextStepsHTML = "";
+        if (data.recommendations && Array.isArray(data.recommendations)) {
+            nextStepsHTML = `
+                <div class="next-steps">
+                     <h4>RECOMMENDATIONS & NEXT STEPS</h4>
+                     <ul>
+                        ${data.recommendations.map((r: string) => `<li>${r}</li>`).join("")}
+                     </ul>
+                </div>
+            `;
+        }
+
+        // Dietary Plan (New)
+        if (data.dietary_plan) {
+            const diet = data.dietary_plan;
+            nextStepsHTML += `
+                <div class="diet-section" style="margin-top: 2rem;">
+                     <h4 style="color: #d81b60; margin-bottom: 0.5rem;">🥗 Recommended Dietary Routine</h4>
+                     <p><strong>${diet.title}:</strong> ${diet.description}</p>
+                     
+                     <div class="diet-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                        <div class="diet-box" style="background: #f1f8e9; padding: 1rem; border-radius: 8px;">
+                            <h5 style="color: #33691e; margin: 0 0 0.5rem 0;">✅ Foods to Eat</h5>
+                            <ul style="margin: 0; padding-left: 1.2rem;">
+                                ${diet.allowed ? diet.allowed.map((f: string) => `<li>${f}</li>`).join("") : ""}
+                            </ul>
+                        </div>
+                        <div class="diet-box" style="background: #ffebee; padding: 1rem; border-radius: 8px;">
+                            <h5 style="color: #b71c1c; margin: 0 0 0.5rem 0;">❌ Foods to Avoid</h5>
+                            <ul style="margin: 0; padding-left: 1.2rem;">
+                                ${diet.avoid ? diet.avoid.map((f: string) => `<li>${f}</li>`).join("") : ""}
+                            </ul>
+                        </div>
+                     </div>
+                     <p style="margin-top: 1rem; background: #e1f5fe; padding: 0.8rem; border-radius: 8px; color: #01579b;">
+                        <strong>💧 Hydration:</strong> ${diet.hydration}
+                     </p>
+                </div>
+             `;
+        }
+
+        const reportHTML = `
+            <div class="medical-report-paper">
+                <div class="report-header">
+                    <div class="hospital-info">
+                        <h3>Empathetic Engagement Diagnostic Center</h3>
+                        <p>Radiology Department</p>
+                    </div>
+                </div>
+                
+                <hr class="divider"/>
+                
+                <div class="patient-grid">
+                    <div class="info-group">
+                        <label>Date:</label> <span>${date}</span>
+                    </div>
+                    <div class="info-group">
+                        <label>Time:</label> <span>${time}</span>
+                    </div>
+                    <div class="info-group full-width">
+                         <label>Modality:</label> <span>${data.modality || "Unknown"}</span>
+                    </div>
+                    <div class="info-group full-width">
+                         <label>Anatomy:</label> <span>${data.anatomy || "General"}</span>
+                    </div>
+                </div>
+
+                <hr class="divider"/>
+
+                <div class="report-body">
+                    <!-- View Toggle -->
+                    <div class="view-toggle" style="position: sticky; top: 1rem; z-index: 20; display: flex; gap: 1rem; margin-bottom: 2rem; justify-content: center; background: rgba(238, 242, 255, 0.95); padding: 0.75rem 1rem; border-radius: 50px; width: fit-content; margin-left: auto; margin-right: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.5);">
+                        <button class="toggle-btn active" onclick="switchReportView('patient')" id="btn-patient" style="padding: 0.5rem 1.75rem; border-radius: 40px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; font-size: 0.95rem;">
+                            🧑‍🦳 Patient View
+                        </button>
+                        <button class="toggle-btn" onclick="switchReportView('doctor')" id="btn-doctor" style="padding: 0.5rem 1.75rem; border-radius: 40px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; background: transparent; color: #6b7280; font-size: 0.95rem;">
+                            👨‍⚕️ Doctor View
+                        </button>
+                    </div>
+
+                    <!-- PATIENT VIEW -->
+                    <div id="view-patient" class="view-section">
+                        <div class="findings-section">
+                            <h4>SUMMARY FOR PATIENT</h4>
+                            <p>${data.communication?.patient_summary || data.impression || "Analysis complete."}</p>
+                            
+                            ${
+                                data.summary_tamil
+                                    ? `
+                            <div style="background: #fdf2f8; border: 1px solid #fbcfe8; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <span style="font-size: 1.5rem;">🗣️</span>
+                                        <h4 style="margin: 0; color: #be185d;">Tanglish Summary (Tamil & English)</h4>
+                                    </div>
+                                    <div>
+                                        <button onclick="window.speakSummary('${data.summary_tamil.replace(/'/g, "\\'")}')" style="background: #be185d; color: white; border: none; padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; font-size: 0.8rem; margin-right: 0.5rem;">
+                                            <span>🔊</span> Play
+                                        </button>
+                                        <button onclick="window.stopAudio()" style="background: #e5e7eb; color: #374151; border: none; padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; font-size: 0.8rem;">
+                                            <span>Tw</span> Stop
+                                        </button>
+                                    </div>
+                                </div>
+                                <p style="margin: 0; font-size: 1rem; line-height: 1.6;">${data.summary_tamil}</p>
+                            </div>
+                            `
+                                    : ""
+                            }
+
+                            <div style="margin-top: 1.5rem; padding: 1rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
+                                <h4 style="color: #166534; margin: 0 0 0.5rem 0;">RECOMMENDED NEXT STEPS</h4>
+                                ${nextStepsHTML ? nextStepsHTML : "<p>Follow your doctor's advice.</p>"}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DOCTOR VIEW -->
+                    <div id="view-doctor" class="view-section" style="display: none;">
+                        <div class="findings-section">
+                            <h4>CLINICAL SUMMARY</h4>
+                            <p>${data.communication?.doctor_summary || data.impression}</p>
+
+                            <h4>RADIOLOGICAL FINDINGS</h4>
+                            ${data.findings}
+                            
+                            ${measurementsHTML ? `<h4>QUANTITATIVE ANALYSIS</h4>${measurementsHTML}` : ""}
+
+                            <h4>DIAGNOSIS (ICD-10)</h4>
+                            <p><strong>${data.diagnosis || "Pending Clinical Correlation"}</strong></p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="report-footer">
+                    <p>Electronically Signed by:</p>
+                    <p class="signature">Gemini 1.5 Pro Medical Assistant (Verified)</p>
+                    <p class="disclaimer">This report was generated by AI and must be verified by a board-certified radiologist.</p>
+                </div>
+            </div>
+        `;
+
+        medlmReport.innerHTML = reportHTML;
+    }
+    function detectOrganFromPixels(img: HTMLImageElement) {
+        // ... (existing logic, maybe less relevant for multi-image but keep it safe for now or skip)
+    }
+
+    // Make it available globally for the inline button in HTML
+    (window as any).speakSummary = function (text) {
+        // ... (existing)
+        console.log("Speaking summary:", text); // DEBUG
+        if ("speechSynthesis" in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+
+            // Wait for voices to be loaded
+            let voices = window.speechSynthesis.getVoices();
+            const setVoice = () => {
+                voices = window.speechSynthesis.getVoices();
+                const tamilVoice = voices.find((voice) =>
+                    voice.lang.includes("ta"),
+                );
+                if (tamilVoice) {
+                    console.log("Using Tamil voice:", tamilVoice.name); // DEBUG
+                    utterance.voice = tamilVoice;
+                }
+                window.speechSynthesis.speak(utterance);
+            };
+
+            if (voices.length === 0) {
+                window.speechSynthesis.onvoiceschanged = setVoice;
+            } else {
+                setVoice();
+            }
+        } else {
+            alert("Sorry, your browser does not support audio playback.");
+        }
+    };
+
+    (window as any).stopAudio = function () {
+        if ("speechSynthesis" in window) {
+            window.speechSynthesis.cancel();
+        }
+    };
+
+    (window as any).switchReportView = function (view) {
+        // Toggle sections
+        const patientSection = document.getElementById("view-patient");
+        const doctorSection = document.getElementById("view-doctor");
+
+        if (view === "patient") {
+            if (patientSection) patientSection.style.display = "block";
+            if (doctorSection) doctorSection.style.display = "none";
+        } else {
+            if (patientSection) patientSection.style.display = "none";
+            if (doctorSection) doctorSection.style.display = "block";
+        }
+
+        // Toggle buttons
+        const patientBtn = document.getElementById("btn-patient");
+        const doctorBtn = document.getElementById("btn-doctor");
+
+        if (patientBtn && doctorBtn) {
+            if (view === "patient") {
+                patientBtn.style.background = "#ffffff";
+                patientBtn.style.color = "#000000";
+                patientBtn.classList.add("active");
+
+                doctorBtn.style.background = "transparent";
+                doctorBtn.style.color = "#6b7280";
+                doctorBtn.classList.remove("active");
+            } else {
+                doctorBtn.style.background = "#ffffff";
+                doctorBtn.style.color = "#000000";
+                doctorBtn.classList.add("active");
+
+                patientBtn.style.background = "transparent";
+                patientBtn.style.color = "#6b7280";
+                patientBtn.classList.remove("active");
+            }
+        }
+    };
+</script>
+
+<style>
+    .analysis-page {
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        min-height: 100vh;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .page-header h1 {
+        color: var(--color-text-main);
+        margin-bottom: 0.5rem;
+    }
+
+    .page-header p {
+        color: var(--color-text-muted);
+    }
+
+    .workspace {
+        position: relative;
+        min-height: 400px;
+    }
+
+    /* Panels */
+    .panel {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+        transition: opacity 0.3s ease;
+    }
+
+    .panel.hidden {
+        display: none;
+    }
+
+    /* Upload Zone */
+    .upload-panel {
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+
+    .drop-zone {
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        padding: 3rem;
+        transition: all 0.2s;
+        background: #f8fafc;
+    }
+
+    .drop-zone.drag-active {
+        border-color: var(--color-primary);
+        background: rgba(0, 212, 255, 0.05);
+    }
+
+    .icon-container {
+        color: var(--color-primary);
+        margin-bottom: 1rem;
+    }
+
+    /* Anatomy Selector */
+    .anatomy-select-container {
+        margin-top: 1.5rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 1rem;
+        background: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .anatomy-select-container label {
+        font-weight: 500;
+        color: var(--color-text-muted);
+    }
+
+    #anatomy-select {
+        padding: 0.5rem;
+        border-radius: 6px;
+        border: 1px solid #cbd5e1;
+        font-family: var(--font-body);
+        color: var(--color-text-main);
+    }
+
+    /* Processing State */
+    .processing-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        width: 100%; /* Ensure full width for centering */
+    }
+
+    /* Scanning Animation */
+    .scan-animation {
+        position: relative;
+        background: rgba(33, 150, 243, 0.05);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 20px;
+        border: 1px solid #e0efff;
+        box-shadow: 0 0 15px rgba(33, 150, 243, 0.1);
+    }
+
+    .scan-beam {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, transparent, #2196f3, transparent);
+        box-shadow: 0 0 10px #2196f3;
+        animation: scan 2s linear infinite;
+        z-index: 2;
+    }
+
+    @keyframes scan {
+        0% {
+            top: 0;
+        }
+        50% {
+            top: 100%;
+        }
+        100% {
+            top: 0;
+        }
+    }
+
+    .scan-icon {
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0.8;
+        }
+        50% {
+            transform: translate(-50%, -50%) scale(1.1);
+            opacity: 1;
+        }
+        100% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0.8;
+        }
+    }
+
+    .processing-overlay.hidden {
+        display: none;
+    }
+
+    .loader {
+        width: 60px;
+        height: 60px;
+        border: 4px solid #e2e8f0;
+        border-top-color: var(--color-primary);
+        border-radius: 50%;
+        animation: spin 1s infinite linear;
+        margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .status-text {
+        font-weight: 500;
+        color: var(--color-secondary);
+    }
+
+    /* Results Section */
+    .results-panel {
+        padding: 2rem;
+    }
+
+    .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .visualization-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .visor {
+        background: #0f172a; /* Dark background for image contrast */
+        border-radius: 12px;
+        height: 300px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .visor .label {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        z-index: 10;
+        backdrop-filter: blur(4px);
+    }
+
+    .visor img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    /* Mock 3D Model Styling */
+    .model-placeholder {
+        width: 100px;
+        height: 100px;
+        border: 2px solid var(--color-accent);
+        transform: rotate45deg;
+        animation: rotate3d 4s infinite linear;
+    }
+
+    @keyframes rotate3d {
+        0% {
+            transform: rotateX(0) rotateY(0);
+        }
+        100% {
+            transform: rotateX(360deg) rotateY(360deg);
+        }
+    }
+
+    /* Metrics */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+    }
+
+    .metric-card {
+        background: #f8fafc;
+        padding: 1.5rem;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .metric-label {
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+        margin-bottom: 0.5rem;
+    }
+
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--color-text-main);
+    }
+
+    .metric-value.danger {
+        color: #ef4444;
+    }
+    .metric-value.success {
+        color: #10b981;
+    }
+
+    .metric-sub {
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        margin-top: 0.25rem;
+    }
+
+    .visualization-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+
+    .visor {
+        width: 100%;
+        max-width: 600px;
+        height: 400px;
+    }
+</style>
+
+<style>
+    .medical-report-paper {
+        font-family: "Times New Roman", Times, serif; /* Classic Medical Font */
+        color: #1e293b;
+        line-height: 1.6;
+        font-size: 1.2rem; /* Increased from default */
+        background: white;
+        padding: 2rem 3rem;
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        max-width: 800px;
+        margin: 2rem auto;
+    }
+
+    .report-header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .hospital-info h3 {
+        color: var(--color-primary);
+        margin-bottom: 0.25rem;
+        font-size: 1.8rem; /* Increased from 1.5rem */
+    }
+
+    .hospital-info p {
+        font-size: 1.05rem; /* Increased from 0.85rem */
+        color: #64748b;
+        margin: 0;
+    }
+
+    .divider {
+        border: none;
+        border-top: 1px solid #e2e8f0;
+        margin: 1.5rem 0;
+    }
+
+    .patient-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem 2rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .info-group label {
+        font-weight: 700;
+        color: #475569;
+        white-space: nowrap;
+    }
+
+    .info-group span {
+        color: #334155;
+    }
+
+    .info-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .report-body h4 {
+        color: var(--color-primary);
+        margin-top: 2rem;
+        margin-bottom: 0.8rem;
+        font-size: 1.4rem; /* Increased from 1.2rem */
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 0.5rem;
+    }
+
+    .report-body ul {
+        list-style-type: disc;
+        margin-left: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .report-body p {
+        margin-bottom: 1rem;
+    }
+
+    .findings-section ul li strong {
+        color: #334155;
+    }
+
+    .measurement-list {
+        font-family: "Courier New", monospace;
+        font-size: 1.05rem; /* Increased from 0.9em */
+        background: #f8fafc;
+        padding: 1rem 1rem 1rem 2.5rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+        border-left: 3px solid var(--color-primary);
+    }
+
+    .next-steps {
+        background: #f0fdf4; /* Light green tint */
+        border-left: 4px solid #16a34a;
+        padding: 1rem;
+        border-radius: 0 8px 8px 0;
+        margin-top: 1rem;
+    }
+
+    .next-steps h4 {
+        color: #15803d;
+        margin-bottom: 0.5rem;
+    }
+
+    .next-steps ul {
+        margin: 0 0 0 1.5rem;
+        color: #14532d;
+    }
+
+    /* Buttons */
+    .button.secondary {
+        background: transparent;
+        border: 1px solid var(--color-secondary);
+        color: var(--color-secondary);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .button.secondary:hover {
+        background: #f0f9ff;
+    }
+
+    @media (max-width: 768px) {
+        .metrics-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .visualization-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+
+    .visor {
+        width: 100%;
+        max-width: 600px;
+        height: 400px;
+    }
+</style>

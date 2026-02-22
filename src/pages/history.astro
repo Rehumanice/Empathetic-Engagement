@@ -1,0 +1,249 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { supabase } from "../lib/supabase";
+
+export const prerender = false;
+
+const { data: reports, error } = await supabase
+    .schema("medicalai")
+    .from("reports")
+    .select(
+        "id, created_at, report_type, full_analysis_json, patient_name, doctor_name",
+    )
+    .order("created_at", { ascending: false });
+
+console.log("History Page - Supabase Data:", reports);
+console.log("History Page - Supabase Error:", error);
+
+const reportList =
+    reports?.map((report) => {
+        const data = report.full_analysis_json;
+        // Determine readable type and icon
+        let typeLabel = "Scan Analysis";
+        let icon = "🩻";
+        if (report.report_type === "blood") {
+            typeLabel = "Blood Analysis";
+            icon = "🩸";
+        } else if (report.report_type === "doctor_case") {
+            typeLabel = "Doctor Review";
+            icon = "🩺";
+        }
+
+        return {
+            id: report.id,
+            date: new Date(report.created_at).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+            }),
+            type: typeLabel,
+            raw_type: report.report_type,
+            patient: report.patient_name || "Self / Unknown",
+            doctor: report.doctor_name,
+            summary:
+                report.report_type === "doctor_case"
+                    ? data.comparison_analysis?.discrepancies?.length > 0 &&
+                      data.comparison_analysis?.discrepancies[0] !== "None"
+                        ? "⚠️ Deviation Detected: " +
+                          data.comparison_analysis.discrepancies[0]
+                        : "✅ Aligned with Doctor's Diagnosis"
+                    : data.communication?.patient_summary ||
+                      data.patient_summary ||
+                      data.summary ||
+                      data.impression ||
+                      "Analysis complete",
+            score: data.healthScore,
+            icon: icon,
+        };
+    }) || [];
+---
+
+<Layout title="History - Empathetic Engagement">
+    <main class="history-page">
+        <div class="header">
+            <h1>Medical History</h1>
+            <p>View your past analysis reports</p>
+        </div>
+
+        {
+            reportList.length === 0 ? (
+                <div class="empty-state">
+                    <p>
+                        No reports found. Upload a scan or blood report to get
+                        started.
+                    </p>
+                    <a href="/" class="button primary">
+                        New Analysis
+                    </a>
+                </div>
+            ) : (
+                <div class="history-grid">
+                    {reportList.map((report) => (
+                        <a href={`/report/${report.id}`} class="history-card">
+                            <div class="card-header">
+                                <span class="date">{report.date}</span>
+                            </div>
+                            <div class="card-meta">
+                                <span class={`badge ${report.raw_type}`}>
+                                    {report.type}
+                                </span>
+                                {report.patient && (
+                                    <span class="patient-badge">
+                                        👤 {report.patient}
+                                    </span>
+                                )}
+                            </div>
+                            <div class="card-icon">{report.icon}</div>
+                            <p class="summary">{report.summary}</p>
+                            {report.score && (
+                                <div class="score-pill">
+                                    Health Score:{" "}
+                                    <strong>{report.score}%</strong>
+                                </div>
+                            )}
+                            <div class="card-footer">
+                                <span>View Report &rarr;</span>
+                            </div>
+                        </a>
+                    ))}
+                </div>
+            )
+        }
+    </main>
+</Layout>
+
+<style>
+    .history-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+    }
+
+    .header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        color: var(--color-text-main);
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem;
+        background: #f8fafc;
+        border-radius: 16px;
+        color: var(--color-text-muted);
+    }
+
+    .history-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .history-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .history-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        border-color: var(--color-primary);
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .date {
+        color: var(--color-text-muted);
+        font-size: 0.9rem;
+    }
+
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .badge.blood {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge.scan {
+        background: #e0f2fe;
+        color: #075985;
+    }
+    
+    .badge.doctor_case {
+        background: #f3e8ff;
+        color: #6b21a8;
+    }
+
+    .card-meta {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .patient-badge {
+         font-size: 0.8rem;
+         color: #64748b;
+         background: #f1f5f9;
+         padding: 0.2rem 0.6rem;
+         border-radius: 12px;
+
+
+    .card-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .summary {
+        color: var(--color-text-main);
+        line-height: 1.6;
+        margin-bottom: auto;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .score-pill {
+        margin-top: 1rem;
+        background: #f0fdf4;
+        color: #166534;
+        padding: 0.5rem;
+        border-radius: 8px;
+        text-align: center;
+        font-size: 0.9rem;
+    }
+
+    .card-footer {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #f1f5f9;
+        color: var(--color-primary);
+        font-weight: 500;
+        text-align: right;
+    }
+</style>
