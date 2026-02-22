@@ -4,9 +4,9 @@ This document details the Artificial Intelligence models and prompts used within
 
 ## Overview
 
-The application utilizes Google's Gemini models for various analysis tasks.
-- **Gemini Pro**: Used for text-heavy analysis and complex reasoning (Blood Reports, Doctor-Patient Comparison).
-- **Gemini Flash**: Used for multimodal tasks requiring fast image processing (Radiology Scans).
+The application utilizes a powerful two-stage **Agentic Workflow** combining Vision and Reasoning models:
+- **Vision Extraction (Gemini 2.5 Pro)**: Acts as the first-pass agent, extracting structured data and features from raw unstructured medical files (PDFs, X-Rays, Scans).
+- **Clinical Reasoning (MedGemma / Gemma 3 27B IT)**: Acts as the secondary cognitive agent. It ingests the structured output from the Vision model alongside patient demographics and doctor hypotheses to perform complex clinical synthesis, calculate deviation scores, and generate empathetic patient summaries.
 
 **Note:** No legacy `MedLM` models are currently used.
 
@@ -19,7 +19,7 @@ GEMINI_API_KEY=your_api_key_here
 
 ## 1. Blood Report Analysis
 **Endpoint:** `/api/analyze-blood`
-**Model:** `models/gemini-pro-latest`
+**Pipeline:** Gemini 2.5 Pro (Vision) -> MedGemma (Reasoning)
 
 ### Purpose
 Analyzes uploaded blood test reports (images/PDFs converted to images) to extract values, flag abnormalities, and provide health insights.
@@ -48,7 +48,7 @@ IMPORTANT:
 
 ## 2. Radiology Scan Analysis
 **Endpoint:** `/api/analyze-scan`
-**Model:** `models/gemini-flash-latest`
+**Pipeline:** Gemini 2.5 Pro (Vision) -> MedGemma (Reasoning)
 
 ### Purpose
 Analyzes medical scans (X-Ray, MRI, CT) to detect anatomy, identify findings, and suggest diagnoses.
@@ -80,7 +80,7 @@ Provide a structured JSON response suitable for a premium EHR system:
 
 ## 3. Doctor-Patient Comparison (Second Opinion)
 **Endpoint:** `/api/analyze-comparison`
-**Model:** `models/gemini-pro-latest`
+**Pipeline:** Gemini 2.5 Pro (Vision) -> MedGemma (Reasoning)
 
 ### Purpose
 Acts as a "Senior Medical Consultant" to compare a doctor's diagnosis with uploaded medical evidence (Scans, Blood Reports, Prescriptions) and identify discrepancies.

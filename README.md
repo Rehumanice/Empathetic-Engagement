@@ -1,10 +1,10 @@
-# Medical AI - Precision Diagnostics
+# Empathetic Engagement - Precision Diagnostics
 
 > **Note**: This is a demo application showcasing the power of Generative AI in Healthcare.
 
 ## 🏥 Overview
 
-Medical AI is a next-generation healthcare platform designed to assist doctors and patients with precision diagnostics. It leverages Google's **Gemini Pro** and **Gemini Flash** models to analyze medical data (Blood Reports, Radiology Scans) and provide actionable insights.
+Empathetic Engagement is a next-generation healthcare platform designed to assist doctors and patients with precision diagnostics. It leverages a two-stage **Agentic Workflow** using Google's **Gemini 2.5 Pro** for vision extraction and **MedGemma (Gemma 3 27B IT)** for clinical reasoning and synthesis.
 
 The platform includes a **Doctor-Assisted AI** mode that acts as a reliable second opinion, comparing a doctor's diagnosis with clinical evidence to calculate a deviation score.
 
@@ -20,7 +20,7 @@ The platform includes a **Doctor-Assisted AI** mode that acts as a reliable seco
 
 - **Framework**: [Astro](https://astro.build/) (Server-Side Rendering)
 - **Database**: [Supabase](https://supabase.com/) (PostgreSQL + RLS)
-- **AI Models**: [Google Gemini](https://ai.google.dev/) (Pro & Flash)
+- **AI Models**: Google Gemini 2.5 Pro & MedGemma (Gemma 3 27B IT)
 - **Styling**: Vanilla CSS (Custom Design System)
 - **Authentication**: Supabase Auth
 
@@ -36,8 +36,8 @@ The platform includes a **Doctor-Assisted AI** mode that acts as a reliable seco
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-repo/medical-ai.git
-   cd empathetic-engagement
+   git clone https://github.com/Rehumanice/Empathetic-Engagement.git
+   cd Empathetic-Engagement
    ```
 
 2. Install dependencies:
@@ -65,7 +65,7 @@ The platform includes a **Doctor-Assisted AI** mode that acts as a reliable seco
 Detailed documentation is available in the `docs/` directory:
 
 - [**Architecture & Data Flow**](docs/ARCHITECTURE.md): Database schema and system design.
-- [**AI Models & Prompts**](docs/AI_MODELS.md): Specifics of Gemini Pro/Flash usage and system prompts.
+- [**AI Models & Prompts**](docs/AI_MODELS.md): Specifics of the Agentic Workflow, MedGemma, and system prompts.
 
 ## 📂 Project Structure
 

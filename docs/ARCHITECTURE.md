@@ -2,7 +2,7 @@
 
 ## High-Level Overview
 
-The Medical AI application follows a modern server-side rendering (SSR) architecture using **Astro**. It interfaces with **Google Gemini** for intelligence and **Supabase** for persistence.
+The Empathetic Engagement application follows a modern server-side rendering (SSR) architecture using **Astro**. It interfaces with **Google Gemini 2.5 Pro** and **MedGemma** for intelligence and **Supabase** for persistence.
 
 ```mermaid
 graph TD
@@ -11,7 +11,7 @@ graph TD
     
     subgraph "Server Side"
         API -->|1. Uploads File| Storage[Supabase Storage]
-        API -->|2. Sends Prompts| AI[Google Gemini API]
+        API -->|2. Two-Stage Pipeline| AI[Vision Agent -> MedGemma Agent]
         AI -->|3. Returns JSON| API
         API -->|4. Saves Data| DB[(Supabase Database)]
     end
@@ -45,7 +45,7 @@ Stores the artifacts and AI analysis results.
 - **visit_id**: Ref -> Clinical Visits
 - **patient_id**: Ref -> Patients
 - **report_type**: 'blood', 'scan', etc.
-- **ai_analysis_json**: JSONB (The full structured output from Gemini)
+- **ai_analysis_json**: JSONB (The full structured output from MedGemma)
 - **file_url**: Link to the file in Supabase Storage.
 
 ## Security & Data Flow
@@ -55,7 +55,7 @@ Stores the artifacts and AI analysis results.
 - Currently, the demo allows public access, but RLS policies are in place (though set to `true` for demo purposes) to allow for easy lockdown in production.
 
 ### Data Privacy
-- **Gemini API**: Data sent to Gemini is for processing. Ensure compliance with Google's specific healthcare data policies when moving to production.
+- **AI Models**: Data sent to Gemini/MedGemma is for processing. Ensure compliance with Google's specific healthcare data policies when moving to production.
 - **Supabase**: Data is stored encrypted at rest.
 
 ### API Layer
